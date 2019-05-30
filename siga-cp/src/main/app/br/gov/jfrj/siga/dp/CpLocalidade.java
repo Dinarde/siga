@@ -31,6 +31,8 @@ import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
+import org.apache.commons.beanutils.BeanToPropertyValueTransformer;
+import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
@@ -50,7 +52,9 @@ public class CpLocalidade extends AbstractCpLocalidade implements Serializable,
 	@SuppressWarnings("unchecked")
 	private static List<String> obterMunicipios() {
 		try {
-			return Cp.getInstance().getProp().obterMunicipios();
+			List<CpLocalidade> localidades = CpDao.getInstance().consultarLocalidades();
+			return (List<String>) CollectionUtils.collect(localidades, 
+                    new BeanToPropertyValueTransformer("descricao"));
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ArrayList();
