@@ -505,7 +505,7 @@ public class ExMobilVO extends ExVO {
 						.podeDesobrestar(titular, lotaTitular, mob), null,
 				null, null, null, "once");
 
-		addAcao("page_white_go", "_Juntar", "/app/expediente/mov", "juntar", Ex
+		addAcao("page_white_go", "_Juntar em...", "/app/expediente/mov", "juntar", Ex
 				.getInstance().getComp().podeJuntar(titular, lotaTitular, mob));
 
 		addAcao("page_find",
@@ -563,7 +563,7 @@ public class ExMobilVO extends ExVO {
 				null, null, null, null);
 
 		addAcao("page_white_go",
-				"Incorporar",
+				"Incorporar em...",
 				"/app/expediente/mov",
 				"incorporar",
 				Ex.getInstance().getComp()

@@ -4645,7 +4645,7 @@ public class ExMovimentacaoController extends ExController {
 	private void redirecionarParaAssinarMovimentacao(String sigla, Long idMovimentacao) {
 		try {
 			String urlRedirect = URLEncoder.encode(MessageFormat.format("/sigaex/app/expediente/doc/exibir?sigla={0}", sigla), "UTF-8");
-			String url = MessageFormat.format("/app/expediente/mov/exibir?id={0}", idMovimentacao);
+			String url = "/app/expediente/mov/exibir?id="+ idMovimentacao;
 		
 			result.redirectTo(url+"&adUrlNext="+urlRedirect);
 		} catch(Exception e) {
