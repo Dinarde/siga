@@ -864,7 +864,17 @@ public class ExMobilController extends
 					builder.getOffset(), getItemPagina(), getTitular(),
 					getLotaTitular()));
 		}
-
+		
+		//Deixa selecionado na primeira vez a lotacao do usuario corrente
+		if (primeiraVez != null && primeiraVez.equals("sim")) {
+			
+			ultMovLotaRespSel.setId(getLotaTitular().getId());
+			ultMovLotaRespSel.setSigla(getLotaTitular().getSiglaLotacao());
+			ultMovLotaRespSel.setDescricao(getLotaTitular().getDescricao());
+			
+			builder.setUltMovTipoResp(2);
+		}
+		
 		result.include("primeiraVez", primeiraVez);
 		result.include("popup", true);
 		result.include("apenasRefresh", apenasRefresh);

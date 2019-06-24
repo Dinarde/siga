@@ -6,7 +6,7 @@
 <%@ taglib uri="http://localhost/customtag" prefix="tags"%>
 <%@ taglib uri="http://localhost/jeetags" prefix="siga"%>
 
-<siga:pagina titulo="Juntar Documento">
+<siga:pagina titulo="Incorporar Documento">
 	
 	<c:if test="${not mob.doc.eletronico}">
 		<script type="text/javascript">$("html").addClass("fisico");$("body").addClass("fisico");</script>

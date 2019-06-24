@@ -4487,12 +4487,8 @@ public class ExMovimentacaoController extends ExController {
 				.podeIncorporar(getTitular(), getLotaTitular(), builder.getMob())) {
 			throw new AplicacaoException("Não é possível fazer incorporação");
 		}
-		
-		// Preencher automaticamente o mobil pai quando se tratar de documento filho
+
 		ExMobilSelecao documentoRefSel = new ExMobilIncorporacaoSelecao();
-		if (doc.getPai() != null) {
-			documentoRefSel.buscarPorObjeto(doc.getPai().isExpediente() ? doc.getPai().getPrimeiraVia() : doc.getPai().getUltimoVolume());
-		}
 		
 		result.include("sigla", sigla);
 		result.include("mob", builder.getMob());
@@ -4583,12 +4579,8 @@ public class ExMovimentacaoController extends ExController {
 				.podeDesincorporar(getTitular(), getLotaTitular(), builder.getMob())) {
 			throw new AplicacaoException("Não é possível fazer desincorporação");
 		}
-		
-		// Preencher automaticamente o mobil pai quando se tratar de documento filho
+
 		ExMobilSelecao documentoRefSel = new ExMobilIncorporacaoSelecao();
-		if (doc.getPai() != null) {
-			documentoRefSel.buscarPorObjeto(doc.getPai().isExpediente() ? doc.getPai().getPrimeiraVia() : doc.getPai().getUltimoVolume());
-		}
 
 		result.include("sigla", sigla);
 		result.include("mob", builder.getMob());

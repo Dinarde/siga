@@ -108,6 +108,12 @@ function visualizarImpressao() {
 														<c:set var="exibemov" scope="request" value="cancelamento" />
 													</c:if>
 												</c:if>
+												<c:if test='${mov.exTipoMovimentacao.idTpMov == 66}'>
+													<c:set var="exibemov" scope="request" value="incorporacao" />
+												</c:if>
+												<c:if test='${mov.exTipoMovimentacao.idTpMov == 67}'>
+													<c:set var="exibemov" scope="request" value="desincorporacao" />
+												</c:if>
 											</c:if> 
 											<c:if test='${not empty exibemov}'>
 												<table class="message" style="width: 100%;">
@@ -196,7 +202,7 @@ function visualizarImpressao() {
 															</tr>
 														</c:if>
 
-														<c:if test="${exibemov == 'despacho' or exibemov == 'desentranhamento' or exibemov == 'encerramento' or exibemov == 'cancelamento'}">
+														<c:if test="${exibemov == 'despacho' or exibemov == 'desentranhamento' or exibemov == 'encerramento' or exibemov == 'cancelamento' or exibemov == 'incorporacao' or exibemov == 'desincorporacao'}">
 															<td>
 															
 															</td>

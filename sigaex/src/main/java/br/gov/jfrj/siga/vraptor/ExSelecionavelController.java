@@ -127,7 +127,6 @@ public abstract class ExSelecionavelController<T extends Selecionavel, DaoFiltro
 	
 	protected List<CpMarcador> getEstadosIncorporacao() throws AplicacaoException {
 		Long[] ids = {
-				CpMarcador.MARCADOR_CAIXA_DE_ENTRADA,
 				CpMarcador.MARCADOR_EM_ANDAMENTO
 		};
 		
