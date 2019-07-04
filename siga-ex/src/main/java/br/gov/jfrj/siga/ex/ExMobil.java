@@ -2218,4 +2218,17 @@ public class ExMobil extends AbstractExMobil implements Serializable, Selecionav
 		return getExMobilPai(predicator).getMobilPrincipal(predicator);
 	}
 	
+	public boolean temDocumentosIncorporados() {
+		boolean b = false;
+		for (ExMovimentacao movRef : getExMovimentacaoReferenciaSet()) {
+			if (!movRef.isCancelada())
+				if (movRef.getExTipoMovimentacao().getId() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_INCORPORACAO)
+					b = true;
+				else if (movRef.getExTipoMovimentacao()
+						.getId() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_INCORPORACAO)
+					b = false;
+		}
+		return b;
+	}
+	
 }

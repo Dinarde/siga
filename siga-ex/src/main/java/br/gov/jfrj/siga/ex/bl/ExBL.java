@@ -6543,7 +6543,9 @@ public class ExBL extends CpBL {
 					if (!getComp().podeMovimentar(cadastrante, lotaCadastrante, m)
 						|| m.isJuntado() || m.isApensado()
 						|| m.temApensos()
-						|| m.temDocumentosJuntados())
+						|| m.temDocumentosJuntados()
+						|| m.isIncorporado()
+						|| m.temDocumentosIncorporados())
 						throw new AplicacaoException("Cancelamento não permitido");
 				}
 			}
