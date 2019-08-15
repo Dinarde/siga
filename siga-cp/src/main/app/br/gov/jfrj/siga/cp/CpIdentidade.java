@@ -36,6 +36,8 @@ import br.gov.jfrj.siga.dp.dao.CpDao;
 import br.gov.jfrj.siga.model.Assemelhavel;
 import br.gov.jfrj.siga.sinc.lib.SincronizavelSuporte;
 
+
+
 @Entity
 @Cacheable
 @Cache(region = CpDao.CACHE_QUERY_SUBSTITUICAO, usage = CacheConcurrencyStrategy.TRANSACTIONAL)
