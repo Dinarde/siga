@@ -50,7 +50,7 @@ public class Notificador {
 	// .getString("ambiente") + ".servidor.principal");
 
 	private static String servidor = SigaBaseProperties.getString("siga.ex."
-					+ SigaBaseProperties.getString("ambiente") + ".url");
+					+ SigaBaseProperties.getString("siga.ambiente") + ".url");
 
 	
 	private static ExDao exDao() {
@@ -162,7 +162,8 @@ public class Notificador {
 			if (!m.isCancelada()
 					&& m.getExTipoMovimentacao()
 							.getIdTpMov()
-							.equals(ExTipoMovimentacao.TIPO_MOVIMENTACAO_VINCULACAO_PAPEL)) {
+							.equals(ExTipoMovimentacao.TIPO_MOVIMENTACAO_VINCULACAO_PAPEL)
+					&& !m.getExPapel().getIdPapel().equals(ExPapel.PAPEL_REVISOR)) {
 				
 				try {
 					if (m.getSubscritor() != null) {
@@ -447,7 +448,7 @@ public class Notificador {
 			conteudo.append("<p>Para visualizar o documento, ");
 			conteudo.append("clique <a href=\"");
 			conteudo.append(servidor
-					+ "/expediente/doc/exibir.action?sigla=");
+					+ "/expediente/doc/exibir?sigla=");
 			conteudo.append(mov.getExDocumento().getSigla());
 			conteudo.append("\">aqui</a>.</p>");		
 			conteudo.append("\n\nEste email foi enviado porque ");
@@ -504,7 +505,7 @@ public class Notificador {
 			conteudoHTML.append("<p>Para visualizar o documento, ");
 			conteudoHTML.append("clique <a href=\"");
 			conteudoHTML.append(servidor
-					+ "/expediente/doc/exibir.action?sigla=");
+					+ "/expediente/doc/exibir?sigla=");
 			conteudoHTML.append(mov.getExDocumento().getSigla());
 			conteudoHTML.append("\">aqui</a>.</p>");
 
@@ -572,7 +573,7 @@ public class Notificador {
 			conteudoHTML.append("clique <a href=\"");
 
 			conteudoHTML
-					.append(servidor + "/expediente/doc/exibir.action?sigla=");
+					.append(servidor + "/expediente/doc/exibir?sigla=");
 
 			conteudoHTML.append(dest.siglaMobil);
 

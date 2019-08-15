@@ -159,7 +159,7 @@ var providerAssijusPopup = {
 				console.log(id, 'hash')
 				var errormsg = this.errormsg;
 				$.ajax({
-					url : "/sigaex/public/app/assinador-popup/doc/" + id + "/hash",
+					url : "/sigaex/app/assinador-popup/doc/" + id + "/hash",
 					type : "GET",
 					async : false,
 					success : function(xhr) {
@@ -178,7 +178,7 @@ var providerAssijusPopup = {
 				console.log(sign)
 				var errormsg = this.errormsg;
 				$.ajax({
-					url : "/sigaex/public/app/assinador-popup/doc/" + id + "/sign",
+					url : "/sigaex/app/assinador-popup/doc/" + id + "/sign",
 					type : "PUT",
 					contentType: "application/json",
 					data : JSON.stringify(sign),
@@ -461,7 +461,7 @@ var providerIttruP11 = {
 	inicializar : function(cont) {
 		try {
 			this.dialog = $(
-					'<div id="dialog-form-pin" title="Assinar com token"><div class="form-group"><label>PIN</label><input type="password" name="pin" id="pin" class="form-control" autocomplete="off"/></div><fieldset><div id="certChoice"/></fieldset></div>')
+					'<div id="dialog-form-pin" title="Assinar com token"><fieldset><label>PIN</label> <br/><input type="password" name="pin" id="pin" class="text ui-widget-content ui-corner-all" autocomplete="off"/></fieldset><fieldset><div id="certChoice"/></fieldset></div>')
 					.dialog(
 							{
 								title : "Assinatura Digital (" + this.nome
@@ -613,37 +613,34 @@ var providerPassword = {
 	nome : 'Assinatura com Senha',
 	inicializar : function(cont) {
 		try {
-			this.dialog = $(
-					'<div id="dialog-form" title="Assinar/Autenticar com Senha"><div class="form-group"><label>Matrícula</label><input id="nomeUsuarioSubscritor" type="text" name="nomeUsuarioSubscritor" class="form-control" onblur="javascript:converteUsuario(this)"/></div><div class="form-group"><label>Senha</label><br /> <input type="password" id="senhaUsuarioSubscritor" name="senhaUsuarioSubscritor"  class="form-control"  autocomplete="off" /></div></div>')
-					.dialog({
-						title : "Identificação",
-						width : '50%',
-						height : 'auto',
-						resizable : false,
-						autoOpen : true,
-						position : {
-							my : "center top+25%",
-							at : "center top",
-							of : window
-						},
-						modal : true,
-						closeText : "hide",
-						buttons : {
-							"OK" : function() {
-								gLogin = $("#nomeUsuarioSubscritor").val();
-								gPassword = $("#senhaUsuarioSubscritor").val();
-								$(this).dialog('destroy').remove();
-								cont();
-							},
-							"Cancelar" : function() {
-								gAssinando = false;
-								$(this).dialog('destroy').remove();
-							}
-						},
-						close : function() {
-						}
-					});
+			var senhaDialog = $(
+					'<div class="modal fade" tabindex="-1" role="dialog" id="senhaDialog"><div class="modal-dialog" role="document"><div class="modal-content">'
+					+ '<div class="modal-header"><h5 class="modal-title" id="exampleModalLabel">Identificação</h5><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>'
+					+ '<div class="modal-body"><fieldset><label>Matrícula</label> <br /> <input id="nomeUsuarioSubscritor" type="text" value="' + $('#siglaUsuarioCadastrante').val() + '" class="text ui-widget-content ui-corner-all" onblur="javascript:converteUsuario(this)" /> <label>(modifique caso necessário)</label><br /> <br /> <label>Senha</label><br /> <input type="password" id="senhaUsuarioSubscritor" class="text ui-widget-content ui-corner-all" autocomplete="off" autofocus /></fieldset></div>'
+					+ '<div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button><button type="button" id="senhaOk" class="btn btn-primary">OK</button></div>'
+					+ '</div></div></div>')
+					.modal();
+			
+			senhaDialog.on('shown.bs.modal', function () {
+				$('#senhaOk').click(function () {
+					gLogin = $("#nomeUsuarioSubscritor").val();
+					gPassword = $("#senhaUsuarioSubscritor").val();
+					gAssinando = false;
+					cont();
+					senhaDialog.modal('hide');
+				});
+			});
+			
+			senhaDialog.on('hidden.bs.modal', function () {
+				senhaDialog.modal('dispose');
+			});
+			
+			
+			
 			$(document).delegate('.ui-dialog', 'keyup', function(e) {
+				if((e.which == 13 || e.key === "Enter") && ($("#nomeUsuarioSubscritor").val() === "" || $("#senhaUsuarioSubscritor").val() === "")) {
+					return false;
+				}
 		        var tagName = e.target.tagName.toLowerCase();
 
 		        tagName = (tagName === 'input' && e.target.type === 'button') ? 'button' : tagName;
@@ -737,29 +734,51 @@ var process = {
 	},
 	run : function() {
 		window.scrollTo(0, 0);
-		this.dialogo = $(
-				'<div id="dialog-ad" title="Assinatura Digital"><p id="vbslog">Iniciando...</p><div id="progressbar-ad"></div></div>')
-				.dialog(
-						{
-							title : "Assinatura Digital (" + provider.nome
-									+ ") " + gCertAlias,
-							width : '50%',
-							height : 'auto',
-							resizable : false,
-							autoOpen : true,
-							position : {
-								my : "center top+25%",
-								at : "center top",
-								of : window
-							},
-							modal : true,
-							closeText : "hide"
-						});
-		this.progressbar = $('#progressbar-ad').progressbar();
-		this.nextStep();
+		
+		var progressDialog = $(
+				'<div class="modal fade" tabindex="-1" role="dialog" id="senhaDialog"><div class="modal-dialog" role="document"><div class="modal-content">'
+				+ '<div class="modal-header"><h5 class="modal-title" id="exampleModalLabel">Assinatura Digital (' + provider.nome
+				+ ") " + gCertAlias + '</h5><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>'
+				+ '<div class="modal-body"><p id="vbslog">Iniciando...</p><div id="progressbar-ad"></div></div>'
+				+ '<div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button><button type="button" id="senhaOk" class="btn btn-primary">OK</button></div>'
+				+ '</div></div></div>')
+				.modal();
+		
+		var runFunction = this;
+		progressDialog.on('shown.bs.modal', function () {
+			runFunction.progressbar = $('#progressbar-ad').progressbar();
+			runFunction.nextStep();
+		});
+		
+		progressDialog.on('hidden.bs.modal', function () {
+			gAssinando = false;
+			progressDialog.modal('dispose');
+		});
+		
+		
+//		this.dialogo = $(
+//				'<div id="dialog-ad" title="Assinatura Digital"><p id="vbslog">Iniciando...</p><div id="progressbar-ad"></div></div>')
+//				.dialog(
+//						{
+//							title : "Assinatura Digital (" + provider.nome
+//									+ ") " + gCertAlias,
+//							width : '50%',
+//							height : 'auto',
+//							resizable : false,
+//							autoOpen : true,
+//							position : {
+//								my : "center top+25%",
+//								at : "center top",
+//								of : window
+//							},
+//							modal : true,
+//							closeText : "hide"
+//						});
+		
 	},
 	finalize : function() {
-		this.dialogo.dialog('destroy');
+		progressDialog.modal('dispose');
+		gAssinando = false;
 	},
 	nextStep : function() {
 		if (typeof this.steps[this.index] == 'string')
@@ -944,7 +963,7 @@ function ExecutarAssinarDocumentos(Copia, Juntar, Tramitar) {
 				var id = gNome ? gNome.split(':')[1] : null;
 				var DadosDoPost = "id=" + id + "&sigla=" + gNome
 						+ "&nomeUsuarioSubscritor=" + gLogin
-						+ "&senhaUsuarioSubscritor=" + gPassword + "&copia="
+						+ "&senhaUsuarioSubscritor=" + encodeURIComponent(gPassword) + "&copia="
 						+ gAutenticar;
 				if (gTramitar !== undefined) {
 					DadosDoPost = DadosDoPost + "&tramitar=" + gTramitar;
@@ -1096,7 +1115,6 @@ function GravarAssinatura(url, datatosend) {
 		error : function(xhr) {
 			// result = TrataErro(xhr.responseText ? xhr.responseText : xhr,
 			// "");
-			gAssinando = false;
 			result = "Erro na gravação da assinatura. " + xhr.responseText;
 		}
 	});
@@ -1288,6 +1306,10 @@ function WaitForAppletLoad(applet_id, attempts, delay, onSuccessCallback,
 
 /* converte para maiúscula a sigla do estado */
 function converteUsuario(nomeusuario) {
+	re = /^[a-zA-Z]{2}\d{3,6}$/;
+	ret2 = /^[a-zA-Z]{1}\d{3,6}$/;
 	tmp = nomeusuario.value;
-	nomeusuario.value = tmp.toUpperCase();
+	if (tmp.match(re) || tmp.match(ret2)) {
+		nomeusuario.value = tmp.toUpperCase();
+	}
 }

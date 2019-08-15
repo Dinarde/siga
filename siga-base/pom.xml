@@ -46,7 +46,6 @@
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
-			<version>4.3.4</version>
 		</dependency>
 
 		<dependency>
@@ -72,6 +71,13 @@
 			<groupId>org.picketbox</groupId>
 			<artifactId>picketbox</artifactId>
 			<version>4.0.21.Beta3</version>
+		</dependency>
+		
+		<!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
+		<dependency>
+		    <groupId>com.google.guava</groupId>
+		    <artifactId>guava</artifactId>
+		    <version>20.0</version>
 		</dependency>
 	</dependencies>
 

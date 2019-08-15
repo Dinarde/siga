@@ -334,6 +334,25 @@
 
 <siga:pagina titulo="Lista de Expedientes" popup="${popup}">
 	<div class="container-fluid content mb-3">
+		<c:if
+			test="${((empty primeiraVez) or (primeiraVez != 'sim')) and ((empty apenasRefresh) or (apenasRefresh != 1))}">
+			<c:if test="${not empty tamanho and tamanho > 0}">
+				<h2 class="mt-3"><fmt:message key="documento.encontrados"/></h2>
+				<c:choose>
+					<c:when test="${siga_cliente == 'GOVSP'}">
+						<jsp:include page="./listaSP.jsp"/>
+					</c:when>
+					<c:otherwise>
+						<jsp:include page="./lista.jsp"/>
+					</c:otherwise>
+				</c:choose>
+			</c:if>
+			<c:if test="${empty tamanho or tamanho == 0}">
+				<h2 class="mt-3"><fmt:message key="documento.encontrados"/></h2>
+				<p class="gt-notice-box">A pesquisa não retornou resultados.</p>
+			</c:if>
+		</c:if>		
+		
 		<div class="card bg-light mb-3">
 			<div class="card-header">
 				<h5>Pesquisar Documentos</h5>
@@ -387,7 +406,7 @@
 						<c:if test="${ultMovTipoResp == 1}">
 							<div id="divUltMovResp" style="display:"
 								class="form-group col-md-4">
-								<label for="ultMovTipoResp"><fmt:message key="usuario.pessoa"/></label>
+								<label for="ultMovTipoResp"><fmt:message key="tela.pesquisa.pessoa"/></label>
 								<siga:selecao propriedade="ultMovResp" tema="simple"
 									paramList="buscarFechadas=true" modulo="siga" />
 							</div>
@@ -401,7 +420,7 @@
 						<c:if test="${ultMovTipoResp == 2}">
 							<div id="divUltMovResp" style="display: none"
 								class="form-group col-md-4">
-								<label for="ultMovTipoResp"><fmt:message key="usuario.pessoa"/></label>
+								<label for="ultMovTipoResp"><fmt:message key="tela.pesquisa.pessoa"/></label>
 								<siga:selecao propriedade="ultMovResp" tema="simple"
 									paramList="buscarFechadas=true" modulo="siga" />
 							</div>
@@ -449,14 +468,14 @@
 						<div class="form-group col-md-3">
 							<label for="dtDocFinalString">Data Final</label> <input
 								class="form-control" type="text" name="dtDocFinalString"
-								id="dtDocFinalString" value="${dtDocString}"
+								id="dtDocFinalString" value="${dtDocFinalString}"
 								onblur="javascript:verifica_data(this,0);" />
 						</div>
 					</div>
-
+					
 					<div id="trTipo" style="display:${idTpDoc == 3 ? 'none' : ''}"
 						class="form-row">
-						<div class="form-group col-md-3">
+						<div class="form-group col-md-3 ${hide_only_GOVSP}">
 							<label for="tipoForma">Tipo da Espécie</label> <select
 								class="form-control" id="tipoForma" name="idTipoFormaDoc"
 								onchange="javascript:alteraTipoDaForma();">
@@ -556,7 +575,7 @@
 						<c:if test="${tipoCadastrante == 1}">
 							<div id="divCadastrante" style="display:"
 								class="form-group col-md-4">
-								<label for="ultMovTipoResp"><fmt:message key="usuario.pessoa"/></label>
+								<label for="ultMovTipoResp"><fmt:message key="tela.pesquisa.pessoa"/></label>
 								<siga:selecao propriedade="cadastrante" tema="simple"
 									paramList="buscarFechadas=true" modulo="siga" />
 							</div>
@@ -570,7 +589,7 @@
 						<c:if test="${tipoCadastrante == 2}">
 							<div id="divCadastrante" style="display: none"
 								class="form-group col-md-4">
-								<label for="ultMovTipoResp"><fmt:message key="usuario.pessoa"/></label>
+								<label for="ultMovTipoResp"><fmt:message key="tela.pesquisa.pessoa"/></label>
 								<siga:selecao propriedade="cadastrante" tema="simple"
 									paramList="buscarFechadas=true" modulo="siga" />
 							</div>
@@ -596,7 +615,7 @@
 						<div id="divDestinatario"
 							style="display:${tipoDestinatario == 1 ? '':'none'}"
 							class="form-group col-md-4">
-							<label for="destinatario"><fmt:message key="usuario.pessoa"/></label>
+							<label for="destinatario"><fmt:message key="tela.pesquisa.pessoa"/></label>
 							<siga:selecao propriedade="destinatario" tema="simple"
 								paramList="buscarFechadas=true" modulo="siga" />
 						</div>
@@ -633,17 +652,19 @@
 						</div>
 					</c:if>
 					
-					${f:obterExtensaoBuscaTextual(lotaTitular.orgaoUsuario, fullText)}
+					${f:obterExtensaoBuscaTextual(lotaTitular.orgaoUsuario, fullText)} 
 
 					<div class="form-row">
 						<div class="form-group col-md-6">
-							<label for="classificacao">Classificação</label>
-							<siga:selecao propriedade="classificacao" modulo="sigaex"
+							<label for="classificacao"><fmt:message key="tela.pesquisa.classificacao"/></label>
+							<siga:selecao propriedade="classificacao" modulo="sigaex" tema="simple"
 								urlAcao="buscar" urlSelecionar="selecionar" />
+
+								
 						</div>
 
 						<div class="form-group col-md-3">
-							<label for="ordem">Ordenação</label> <select class="form-control"
+							<label for="ordem"><fmt:message key="tela.pesquisa.ordenacao"/></label> <select class="form-control"
 								id="ordem" name="ordem" onchange="javascript:sbmt();">
 								<c:forEach items="${listaOrdem}" var="item">
 									<option value="${item.key}"
@@ -653,7 +674,7 @@
 						</div>
 
 						<div class="form-group col-md-3">
-							<label for="visualizacao">Visualização</label> <select
+							<label for="visualizacao"><fmt:message key="tela.pesquisa.visualizacao"/></label> <select
 								class="form-control" id="visualizacao" name="visualizacao"
 								onchange="javascript:sbmt();">
 								<c:forEach items="${listaVisualizacao}" var="item">
@@ -675,27 +696,15 @@
 				</form>
 			</div>
 		</div>
-		<c:if
-			test="${((empty primeiraVez) or (primeiraVez != 'sim')) and ((empty apenasRefresh) or (apenasRefresh != 1))}">
-			<c:if test="${not empty tamanho and tamanho > 0}">
-				<h2 class="mt-3"><fmt:message key="documento.encontrados"/></h2>
-				<c:choose>
-					<c:when test="${siga_cliente == 'GOVSP'}">
-						<jsp:include page="./listaSP.jsp"/>
-					</c:when>
-					<c:otherwise>
-						<jsp:include page="./lista.jsp"/>
-					</c:otherwise>
-				</c:choose>
-			</c:if>
-			<c:if test="${empty tamanho or tamanho == 0}">
-				<h2 class="mt-3"><fmt:message key="documento.encontrados"/></h2>
-				<p class="gt-notice-box">A pesquisa não retornou resultados.</p>
-			</c:if>
-			<input type="button" value="Voltar" onclick="javascript:history.back();" class="btn btn-primary" /><br>
-		</c:if>
 	</div>
 	<script>
 		alteraOrigem();
 	</script>
+	<c:if test="${siga_cliente == 'GOVSP'}">
+		<script>
+		$(document).ready(function() {
+			alteraTipoDaForma()
+		});
+		</script>
+	</c:if>
 </siga:pagina>

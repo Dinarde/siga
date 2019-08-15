@@ -215,9 +215,9 @@ public class ExDocumentoVO extends ExVO {
 			}
 		}
 
-		if (doc.getDocumentosPublicadosNoBoletim() != null) {
-			for (ExDocumento documentoPublicado : doc
-					.getDocumentosPublicadosNoBoletim()) {
+		List<ExDocumento> documentosPublicadosNoBoletim = doc.getDocumentosPublicadosNoBoletim();
+		if (documentosPublicadosNoBoletim != null) {
+			for (ExDocumento documentoPublicado : documentosPublicadosNoBoletim) {
 				documentosPublicados.add(new ExDocumentoVO(documentoPublicado));
 			}
 		}
@@ -295,6 +295,8 @@ public class ExDocumentoVO extends ExVO {
 				.add(ExTipoMovimentacao.TIPO_MOVIMENTACAO_ENCERRAMENTO_DE_VOLUME);
 		movimentacoesPermitidas
 				.add(ExTipoMovimentacao.TIPO_MOVIMENTACAO_COPIA);
+		movimentacoesPermitidas
+				.add(ExTipoMovimentacao.TIPO_MOVIMENTACAO_CIENCIA);		
 
 		List<Long> marcasGeralPermitidas = new ArrayList<Long>();
 		marcasGeralPermitidas.add(CpMarcador.MARCADOR_A_ELIMINAR);
@@ -354,7 +356,7 @@ public class ExDocumentoVO extends ExVO {
 		}
 
 		for (ExMobil cadaMobil : doc.getExMobilSet()) {
-			if (!cadaMobil.isGeral())
+			// if (!cadaMobil.isGeral())
 				marcasPorMobil.put(cadaMobil, cadaMobil.getExMarcaSet());
 		}
 
@@ -367,18 +369,18 @@ public class ExDocumentoVO extends ExVO {
 				if (marcasGeralPermitidas.contains(m.getCpMarcador()
 						.getIdMarcador()))
 					mobilEspecifico.getMarcasAtivas().add(m);
-			for (ExMarca m : mobilGeral.getMob().getExMarcaSet())
-				if (marcasGeralPermitidas.contains(m.getCpMarcador()
-						.getIdMarcador()))
-					for (ExMobil cadaMobil : marcasPorMobil.keySet())
-						marcasPorMobil.get(cadaMobil).add(m);
+//			for (ExMarca m : mobilGeral.getMob().getExMarcaSet())
+//				if (marcasGeralPermitidas.contains(m.getCpMarcador()
+//						.getIdMarcador()))
+//					for (ExMobil cadaMobil : marcasPorMobil.keySet())
+//						marcasPorMobil.get(cadaMobil).add(m);
 			mobs.remove(mobilGeral);
 		}
 
 		// Edson: mostra lista de vias/volumes só se número de
 		// vias/volumes além do geral for > que 1 ou se o móbil
 		// tiver informações que não aparecem no topo da tela
-		if (doc.getExMobilSet().size() > 2 || mob.temMarcaNaoAtiva())
+		//if (doc.getExMobilSet().size() > 2 || mob.temMarcaNaoAtiva())
 			outrosMobsLabel = doc.isProcesso() ? "Volumes" : "Vias";
 
 		this.dotTramitacao = new ExGraphTramitacao(mob);
@@ -395,8 +397,6 @@ public class ExDocumentoVO extends ExVO {
 	 */
 	private void addAcoes(ExDocumento doc, DpPessoa titular,
 			DpLotacao lotaTitular, boolean exibirAntigo) {
-		String iconVerImpressao;
-		String iconVerMais;
 		
 		ExVO vo = this;
 		for (ExMobilVO mobvo : mobs) {
@@ -414,16 +414,8 @@ public class ExDocumentoVO extends ExVO {
 				Ex.getInstance().getComp()
 						.podeVisualizarImpressao(titular, lotaTitular, mob));
 
-		if(SigaMessages.isSigaSP()) {
-			iconVerImpressao = "eye";
-			iconVerMais = "date_magnify";
-		} else {
-			iconVerImpressao = "printer";
-			iconVerMais = "eye";
-		}
-
 		vo.addAcao(
-				iconVerImpressao,
+				SigaMessages.getMessage("icon.ver.impressao"),
 				SigaMessages.getMessage("documento.ver.impressao"),
 				"/app/arquivo",
 				"exibir",
@@ -480,7 +472,7 @@ public class ExDocumentoVO extends ExVO {
 				Ex.getInstance().getComp()
 						.podeFazerAnotacao(titular, lotaTitular, mob));
 
-		vo.addAcao("folder_user", "Definir Perfil", "/app/expediente/mov",
+		vo.addAcao("folder_user", SigaMessages.getMessage("documento.definir.perfil"), "/app/expediente/mov",
 				"vincularPapel", Ex.getInstance().getComp()
 						.podeFazerVinculacaoPapel(titular, lotaTitular, mob));
 
@@ -546,7 +538,7 @@ public class ExDocumentoVO extends ExVO {
 				Ex.getInstance()
 						.getComp()
 						.podeAutenticarDocumento(titular, lotaTitular,
-								mob.doc()));
+								mob.getExDocumento()));
 
 		vo.addAcao(
 				"page_go	",
@@ -619,10 +611,10 @@ public class ExDocumentoVO extends ExVO {
 		// test="${exibirCompleto != true}" />
 		int numUltMobil = doc.getNumUltimoMobil();
 		vo.addAcao(
-				iconVerMais,
+				SigaMessages.getMessage("icon.ver.mais"),
 				SigaMessages.getMessage("documento.ver.mais"),
 				"/app/expediente/doc",
-				"exibirAntigo",
+				SigaMessages.getMessage("documento.acao.exibirAntigo"),
 				Ex.getInstance()
 						.getComp()
 						.podeExibirInformacoesCompletas(titular, lotaTitular,

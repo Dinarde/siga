@@ -16,14 +16,17 @@ public class ContextoPersistencia {
 	static public EntityManager em() {
 		return emByThread.get();
 	}
-	
-	static public void flushTransaction() {
+
+	static public void flush() {
 		em().flush();
 		((Session) (em().getDelegate())).flush();
+	}
+	
+	static public void flushTransaction() {
+		flush();
 		em().getTransaction().commit();
 		em().getTransaction().begin();
 	}
-	
 
 	static public void setUserPrincipal(String userPrincipal) {
 		userPrincipalByThread.set(userPrincipal);

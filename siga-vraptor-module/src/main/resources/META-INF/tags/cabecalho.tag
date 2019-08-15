@@ -120,8 +120,13 @@ ${meta}
 		<meta name="theme-color" content="bg-primary">
 		<c:set var="ico_siga" value="siga.ico" />
 		<c:set var="menu_class" value="bg-primary" /> 
-		<c:set var="sub_menu_class" value="bg-light" />
-		<c:set var="navbar_class" value="navbar-dark" />
+		<c:set var="sub_menu_class" value="bg-secondary text-white" />
+		
+		<c:set var="navbar_class" value="navbar-dark bg-primary" />
+		<c:if test="${f:resource('isBaseTest')}">
+			<c:set var="navbar_class" value="navbar-dark bg-secondary" />
+		</c:if>
+		
 		<c:set var="navbar_logo" value="logo-siga-novo-38px.png" />
 		<c:set var="navbar_logo_size" value="38" />
 		<c:set var="button_class_busca" value="btn-outline-light" />
@@ -149,7 +154,7 @@ ${meta}
 
 <body onload="${onLoad}" class="${body_color}">
 	<c:if test="${popup!='true'}">
-		<nav class="navbar navbar-expand-lg ${navbar_class} ${menu_class}">
+   		<nav class="navbar navbar-expand-lg ${navbar_class} ${menu_class}">
 			<a class="navbar-brand pt-0 pb-0" href="/siga"> <img
 				src="/siga/imagens/${navbar_logo}" height="${navbar_logo_size}">
 			</a>
@@ -166,7 +171,7 @@ ${meta}
 				aria-label="Toggle navigation">
 				<span class="navbar-toggler-icon"></span>
 			</button>
-			<c:if test="${siga_cliente == 'GOVSP' and f:podeUtilizarServicoPorConfiguracao(titular,lotaTitular,'SIGA')}">
+			<c:if test="${siga_cliente != 'GOVSP' or f:podeUtilizarServicoPorConfiguracao(titular,lotaTitular,'SIGA')}">
 				<div class="collapse navbar-collapse" id="navbarSupportedContent">
 					<ul class="navbar-nav mr-auto">
 						<!-- navigation -->
@@ -184,6 +189,37 @@ ${meta}
 									modulo="siga/public" urlAcao="buscar" urlSelecionar="selecionar"
 									matricula="${titular.siglaCompleta}" />
 								<button class="btn ${button_class_busca} ml-2 my-2 my-sm-0" type="button" onclick="javascript:buscarDocumentoPorCodigo();">Buscar</button>
+								<button id="link" class="btn btn-outline-success ml-2 my-2 my-sm-0" type="button">Tutoriais</button>
+
+								<div id="tutorialModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="tutorialModalLabel" aria-hidden="true" >
+								    <div class="modal-dialog modal-dialog-centered modal-lg" style="max-width: 80% !important;">
+								        <div class="modal-content" >
+								            <div class="modal-header bg-success">
+								            	<h5 class="modal-title text-white" id="exampleModalLongTitle">Tutoriais SP Sem Papel</h5>
+								                <button type="button" class="close text-white" data-dismiss="modal" aria-hidden="true">×</button>
+								            </div>
+									        <div class="modal-body bg-light">
+								                <iframe width="100%" height="600" frameborder="0" allowfullscreen=""></iframe>
+								            </div>
+
+								        </div>
+								    </div>
+								</div>
+								<script>
+								    $('#link').click(function () {
+								        var src = 'https://vimeopro.com/fcav/spsempapel';
+								        $('#tutorialModal').modal('show');
+								        $('#tutorialModal iframe').attr('src', src);
+								    });
+								
+								    $('#tutorialModal button').click(function () {
+								        $('#tutorialModal iframe').removeAttr('src');
+								    });
+								</script>
+								
+
+								
+								
 								<script type="text/javascript">
 									if (false) {
 										var lis = document
@@ -283,12 +319,14 @@ ${meta}
 		<div class="container-fluid content">
 			<div class="row pt-2 pb-2 mb-3 ${sub_menu_class}" >
 				<!-- usuário -->
-				<div class="col col-sm-6">
-					<div class="gt-company">
-						<strong><span>${f:resource('siga.cabecalho.titulo')}</span> </strong>
-						 <c:catch>
-								<c:if test="${not empty titular.orgaoUsuario.descricao}"><span style="white-space: nowrap;"> <i class="fa fa-angle-right"></i> ${titular.orgaoUsuario.descricao}</span></h6></c:if>
-						 </c:catch>
+				<div class="col col-12 col-sm-4">
+					<div class="gt-company d-inline align-middle">
+						<span class="h-100">
+							<strong><span>${f:resource('siga.cabecalho.titulo')}</span> </strong>
+							 <c:catch>
+									<c:if test="${not empty titular.orgaoUsuario.descricao}"><span style="white-space: nowrap;"> <i class="fa fa-angle-right"></i> ${titular.orgaoUsuario.descricao}</span></h6></c:if>
+							 </c:catch>
+						</span>
 					</div>
 					
 					<!-- 
@@ -299,41 +337,85 @@ ${meta}
 					</div>
 					 -->
 				</div>
+				<div class="col col-12 col-sm-4 text-center">
+					<span class="h3 text-success align-middle ${hide_only_TRF2}">
+						<c:choose>
+							<c:when test="${f:resource('ambiente') eq 'prod'}">
+								Ambiente Oficial
+							</c:when>
+							<c:when test="${f:resource('ambiente') eq 'treinamento'}">
+								Ambiente de Simulação
+							</c:when>
+							<c:when test="${f:resource('ambiente') eq 'homolog'}">
+								Ambiente de Homologação
+							</c:when>
+						</c:choose>
+					</span>
+				</div>
 				<c:if test="${not empty cadastrante}">
-					<div class="col col-sm-6 text-right">
-								<span class="align-middle">Olá, <i class="fa fa-user"></i> <strong><c:catch>
-										<c:out default="Convidado"
-											value="${f:maiusculasEMinusculas(cadastrante.nomePessoa)}" />
-										<c:choose>
-											<c:when test="${not empty cadastrante.lotacao}">
-						 						<span style="white-space: nowrap;"><i class="fa fa-building"></i> ${cadastrante.lotacao.sigla}</span>
-						 					</c:when>
-										</c:choose>
-									</c:catch> </strong> 
-									<button class="btn btn-danger btn-sm ml-3" type="button" onclick="javascript:location.href='/siga/public/app/logout'"><i class="fas fa-sign-out-alt"></i> Sair</button>
-								</span>
-							<div>
+					<div class="col col-12 col-sm-4 text-right">
+						<div class="dropdown d-inline">
+							<span class="align-middle">Olá, <i class="fa fa-user"></i> 
 								<c:catch>
-									<c:choose>
-										<c:when
-											test="${not empty titular && titular.idPessoa!=cadastrante.idPessoa}">Substituindo: <strong>${f:maiusculasEMinusculas(titular.nomePessoa)}</strong>
-											<span class="gt-util-separator">|</span>
-											<a href="/siga/app/substituicao/finalizar">finalizar</a>
-										</c:when>
-										<c:when
-											test="${not empty lotaTitular && lotaTitular.idLotacao!=cadastrante.lotacao.idLotacao}">Substituindo: <strong>${f:maiusculasEMinusculas(lotaTitular.nomeLotacao)}</strong>
-											<span class="gt-util-separator">|</span>
-											<a href="/siga/app/substituicao/finalizar">finalizar</a>
-										</c:when>
-										<c:otherwise></c:otherwise>
-									</c:choose>
-								</c:catch>
-							</div>
+									<strong data-toggle="tooltip" data-placement="top" title="${cadastrante.sigla}">									
+											<c:out default="Convidado" value="${f:maiusculasEMinusculas(cadastrante.nomePessoa)}" />
+									</strong>
+									<c:if test="${not empty cadastrante.lotacao}">
+										<c:if test="${cadastrante.lotacoes[1] != null}">
+											<button class="btn btn-light btn-sm dropdown-toggle ml-1" type="button" id="dropdownLotaMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+										</c:if>
+					 						<strong>
+					 							<span style="white-space: nowrap;"><i class="fa fa-building"></i> ${cadastrante.lotacao.sigla}</span>
+					 						</strong>
+										<c:if test="${cadastrante.lotacoes[1] != null}">
+											</button>
+											<div class="dropdown-menu" aria-labelledby="dropdownLotaMenuButton">
+												<c:forEach var="lota" items="${cadastrante.lotacoes}">
+													<c:if test="${!(lota[0]==cadastrante.sigla || lota[1]==cadastrante.lotacao)}">
+														<a class="dropdown-item" href="/siga/app/swapUser?username=${lota[0]}">
+															${lota[1]} (${lota[0]})
+															<p class="mb-0"><small>${lota[2]}</small></p>
+														</a>
+													</c:if>
+												</c:forEach>
+											</div>
+										</c:if>
+				 					</c:if>
+								</c:catch> 
+							</span>
+						</div>
+						<button class="btn btn-danger btn-sm ml-3 mt-1 align-bottom" type="button" onclick="javascript:location.href='/siga/public/app/logout'"><i class="fas fa-sign-out-alt"></i> Sair</button>
+						<div class="d-inline">
+							<c:catch>
+								<c:choose>
+									<c:when
+										test="${not empty titular && titular.idPessoa!=cadastrante.idPessoa}">Substituindo: <strong>${f:maiusculasEMinusculas(titular.nomePessoa)}</strong>
+										<span class="gt-util-separator">|</span>
+										<a href="/siga/app/substituicao/finalizar">finalizar</a>
+									</c:when>
+									<c:when
+										test="${not empty lotaTitular && lotaTitular.idLotacao!=cadastrante.lotacao.idLotacao}">Substituindo: <strong>${f:maiusculasEMinusculas(lotaTitular.nomeLotacao)}</strong>
+										<span class="gt-util-separator">|</span>
+										<a href="/siga/app/substituicao/finalizar">finalizar</a>
+									</c:when>
+									<c:otherwise></c:otherwise>
+								</c:choose>
+							</c:catch>
+						</div>
 					</div>
 				</c:if>
 			</div>
+			<div class="row ${mensagemCabec==null?'d-none':''}" >
+				<div class="col" >
+					<div class="alert ${msgCabecClass} fade show" role="alert">
+						${mensagemCabec}
+						<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>			
+				</div>
+			</div>
 		</div>
-
 
 		<div id="quadroAviso"
 			style="position: absolute; font-weight: bold; padding: 4px; color: white; visibility: hidden">-</div>

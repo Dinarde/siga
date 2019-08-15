@@ -24,17 +24,16 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Set;
 
-import org.hibernate.LockMode;
-
 import br.gov.jfrj.siga.base.AplicacaoException;
-import br.gov.jfrj.siga.cp.CpServico;
+import br.gov.jfrj.siga.base.SigaBaseProperties;
+import br.gov.jfrj.siga.base.SigaMessages;
+import br.gov.jfrj.siga.cp.CpComplexo;
 import br.gov.jfrj.siga.cp.CpSituacaoConfiguracao;
 import br.gov.jfrj.siga.cp.CpTipoConfiguracao;
 import br.gov.jfrj.siga.cp.bl.CpCompetenciaBL;
 import br.gov.jfrj.siga.dp.CpMarca;
 import br.gov.jfrj.siga.dp.CpMarcador;
 import br.gov.jfrj.siga.dp.CpOrgaoUsuario;
-import br.gov.jfrj.siga.dp.CpTipoLotacao;
 import br.gov.jfrj.siga.dp.DpCargo;
 import br.gov.jfrj.siga.dp.DpFuncaoConfianca;
 import br.gov.jfrj.siga.dp.DpLotacao;
@@ -168,7 +167,7 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 		
 		if(mob.doc().getOrgaoUsuario() != null  
 				&& mob.doc().getOrgaoUsuario().getIdOrgaoUsu() != null) {
-			if(podePorConfiguracao(titular, lotaTitular, CpTipoConfiguracao.TIPO_CONFIG_ACESSAR, mob.doc().getOrgaoUsuario())) {
+			if(podePorConfiguracao(titular, lotaTitular, CpTipoConfiguracao.TIPO_CONFIG_ACESSAR, null, null, null, null, null, mob.doc().getOrgaoUsuario())) {
 				return true;	
 			}
 		}		
@@ -198,7 +197,7 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 
 		if(doc.getOrgaoUsuario() != null  
 				&& doc.getOrgaoUsuario().getIdOrgaoUsu() != null) {
-			if(podePorConfiguracao(titular, lotaTitular, CpTipoConfiguracao.TIPO_CONFIG_ACESSAR, doc.getOrgaoUsuario())) {
+			if(podePorConfiguracao(titular, lotaTitular, CpTipoConfiguracao.TIPO_CONFIG_ACESSAR, null, null, null, null, null, doc.getOrgaoUsuario())) {
 				return true;	
 			}
 		}		
@@ -572,7 +571,7 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 			final DpLotacao lotaTitular, final ExMobil mob) {
 		Boolean podePorConf = podePorConfiguracao(titular, lotaTitular,
 				ExTipoMovimentacao.TIPO_MOVIMENTACAO_ANEXACAO,
-				CpTipoConfiguracao.TIPO_CONFIG_MOVIMENTAR, null);
+				CpTipoConfiguracao.TIPO_CONFIG_MOVIMENTAR, null, null, null, null, null, null);
 	
 		if (mob.doc().isFinalizado()) {
 			return !mob.isEmTransito()
@@ -615,7 +614,7 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 			final DpLotacao lotaTitular, final ExMobil mob) {
 		Boolean podePorConf = podePorConfiguracao(titular, lotaTitular,
 				ExTipoMovimentacao.TIPO_MOVIMENTACAO_COPIA,
-				CpTipoConfiguracao.TIPO_CONFIG_MOVIMENTAR, null);
+				CpTipoConfiguracao.TIPO_CONFIG_MOVIMENTAR, null, null, null, null, null, null);
 	
 		return mob.doc().isFinalizado() && !mob.isEmTransito()
 				&& (!mob.isGeral() || mob.doc().isExterno())
@@ -646,7 +645,9 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 			long tipoConfig, long tipoMov, ExTipoDocumento exTipoDocumento,
 			ExTipoFormaDoc exTipoFormaDoc, ExFormaDocumento exFormaDocumento,
 			ExModelo exModelo, ExClassificacao exClassificacao, ExVia exVia,
-			ExNivelAcesso exNivelAcesso, ExPapel exPapel, CpOrgaoUsuario orgaoObjeto) {
+			ExNivelAcesso exNivelAcesso, ExPapel exPapel, DpPessoa pessoaObjeto, 
+			DpLotacao lotacaoObjeto, CpComplexo complexoObjeto, DpCargo cargoObjeto, 
+			DpFuncaoConfianca funcaoConfiancaObjeto, CpOrgaoUsuario orgaoObjeto) {
 		ExConfiguracao cfgFiltro = new ExConfiguracao();
 
 		cfgFiltro.setCargo(titularIniciador.getCargo());
@@ -670,6 +671,10 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 		cfgFiltro.setExVia(exVia);
 		cfgFiltro.setExNivelAcesso(exNivelAcesso);
 		cfgFiltro.setExPapel(exPapel);
+		cfgFiltro.setPessoaObjeto(pessoaObjeto);
+		cfgFiltro.setLotacaoObjeto(lotacaoObjeto);
+		cfgFiltro.setComplexoObjeto(complexoObjeto);
+		cfgFiltro.setCargoObjeto(cargoObjeto);
 		cfgFiltro.setOrgaoObjeto(orgaoObjeto);
 
 		ExConfiguracao cfg = (ExConfiguracao) getConfiguracaoBL()
@@ -681,8 +686,10 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 		// Portanto, quando vamos acessar alguma propriedade dele que seja do
 		// tipo LazyRead, obtemos um erro. O método lock, attacha ele novamente
 		// na seção atual.
-		if (cfg != null)
-			ExDao.getInstance().getSessao().lock(cfg, LockMode.NONE);
+		
+		// Dasabilitado porque estava dando erro de "Illegal attempt to associate a collection with two open sessions"
+		//if (cfg != null)
+		//	ExDao.getInstance().getSessao().lock(cfg, LockMode.NONE);
 
 		return cfg;
 	}
@@ -700,11 +707,15 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 	 * @throws Exception
 	 */
 	private Boolean podePorConfiguracao(DpPessoa titular,
-			DpLotacao lotaTitular, long tipoMov, long tipoConfig, CpOrgaoUsuario orgaoObjeto) {
+			DpLotacao lotaTitular, long tipoMov, long tipoConfig, DpPessoa pessoaObjeto, 
+			DpLotacao lotacaoObjeto, CpComplexo complexoObjeto, DpCargo cargoObjeto, 
+			DpFuncaoConfianca funcaoConfiancaObjeto, CpOrgaoUsuario orgaoObjeto) {
 		CpSituacaoConfiguracao situacao;
+		
 		ExConfiguracao cfg = preencherFiltroEBuscarConfiguracao(titular,
-				lotaTitular, tipoConfig, tipoMov, null, null, null, null, null,
-				null, null, null, orgaoObjeto);
+				lotaTitular, tipoConfig, tipoMov, null, null, null, null, null, null, null, null, pessoaObjeto, 
+				lotacaoObjeto, complexoObjeto, cargoObjeto, 
+				funcaoConfiancaObjeto, orgaoObjeto);
 
 		if (cfg != null) {
 			situacao = cfg.getCpSituacaoConfiguracao();
@@ -722,12 +733,14 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 
 	private Boolean podePorConfiguracao(DpPessoa titular,
 			DpLotacao lotaTitular, long tipoConfig) {
-		return podePorConfiguracao(titular, lotaTitular, 0L, tipoConfig, null);
+		return podePorConfiguracao(titular, lotaTitular, 0L, tipoConfig, null, null, null, null, null, null);
 	}
 	
 	private Boolean podePorConfiguracao(DpPessoa titular,
-			DpLotacao lotaTitular, long tipoConfig, CpOrgaoUsuario orgaoObjeto) {
-		return podePorConfiguracao(titular, lotaTitular, 0L, tipoConfig, orgaoObjeto);
+			DpLotacao lotaTitular, long tipoConfig, DpPessoa pessoaObjeto, 
+			DpLotacao lotacaoObjeto, CpComplexo complexoObjeto, DpCargo cargoObjeto, 
+			DpFuncaoConfianca funcaoConfiancaObjeto, CpOrgaoUsuario orgaoObjeto) {
+		return podePorConfiguracao(titular, lotaTitular, 0L, tipoConfig, pessoaObjeto, lotacaoObjeto, complexoObjeto, cargoObjeto, funcaoConfiancaObjeto, orgaoObjeto);
 	}
 
 	/**
@@ -1142,6 +1155,17 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 			&& ((mob.doc().getSubscritor() != null && mob.doc().getSubscritor().equivale(titular)) || mob.doc().isCossignatario(titular)))
 			return true;
 		
+		// Se o subscritor ou algum cossignatário requer solicitação de assinatura, não deve permitir assinar sem ela
+/*		if (!mob.doc().isAssinaturaSolicitada()) {
+			if (!getConf().podePorConfiguracao(mob.doc().getSubscritor(), CpTipoConfiguracao.TIPO_CONFIG_PODE_ASSINAR_SEM_SOLICITACAO))
+				return false;
+			for (DpPessoa cossig : mob.doc().getCosignatarios()) { 
+				if (!getConf().podePorConfiguracao(mob.doc().getSubscritor(), CpTipoConfiguracao.TIPO_CONFIG_PODE_ASSINAR_SEM_SOLICITACAO))
+					return false;
+			}
+		}
+*/		
+		
 		return (mob.doc().getSubscritor().equivale(titular)
 				|| (mob.doc().isExterno() && mob.doc().getCadastrante().equivale(titular))
 				|| (mob.doc().isCossignatario(titular) && mob.doc().isPendenteDeAssinatura() && mob.doc().isAssinadoPeloSubscritorComTokenOuSenha())
@@ -1192,6 +1216,13 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 		if (!doc.isEletronico() || !doc.getAutenticacoesComTokenOuSenha().isEmpty())
 			return false;
 		
+		if(SigaBaseProperties.getString("siga.local") != null && "GOVSP".equals(SigaBaseProperties.getString("siga.local")) &&
+				!Long.valueOf(ExTipoDocumento.TIPO_DOCUMENTO_EXTERNO_CAPTURADO).equals(Long.valueOf(doc.getExTipoDocumento().getId())) &&
+				!Long.valueOf(ExTipoDocumento.TIPO_DOCUMENTO_INTERNO_CAPTURADO).equals(Long.valueOf(doc.getExTipoDocumento().getId()))				
+				) {
+			return false;
+		}
+		
 		return doc.isExternoCapturado() || doc.isInternoCapturado() || doc.getAssinaturasComSenha().size() > 0;
 	}
 	
@@ -1216,12 +1247,15 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 		if (doc.isAssinaturaSolicitada())
 			return false;
 		
+		if (doc.getLotaSubscritor() == null)
+			return false;
+				
 		ExTipoMovimentacao exTpMov = ExDao.getInstance().consultar(ExTipoMovimentacao.TIPO_MOVIMENTACAO_SOLICITACAO_DE_ASSINATURA,
 				ExTipoMovimentacao.class, false);
 		
 		return getConf().podePorConfiguracao(null, null, null, null, doc.getExFormaDocumento(), doc.getExModelo(), null,
 				null, exTpMov, null, null, null, lotaTitular, titular, null,null,
-				CpTipoConfiguracao.TIPO_CONFIG_MOVIMENTAR);
+				CpTipoConfiguracao.TIPO_CONFIG_MOVIMENTAR, doc.getSubscritor(), null, null, null, null, null);
 	}
 	
 	/*
@@ -1758,8 +1792,9 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 				|| exUltMovNaoCanc.getExTipoMovimentacao().getIdTpMov() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_DESPACHO_TRANSFERENCIA
 				|| exUltMovNaoCanc.getExTipoMovimentacao().getIdTpMov() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_RECEBIMENTO_TRANSITORIO
 				|| exUltMovNaoCanc.getExTipoMovimentacao().getIdTpMov() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_REGISTRO_ASSINATURA_DOCUMENTO
-				|| exUltMovNaoCanc.getExTipoMovimentacao().getIdTpMov() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_ASSINATURA_DIGITAL_DOCUMENTO) {
-			return exUltMovNaoCanc.getLotaCadastrante().equivale(lotaTitular);
+				|| exUltMovNaoCanc.getExTipoMovimentacao().getIdTpMov() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_ASSINATURA_DIGITAL_DOCUMENTO
+				|| exUltMovNaoCanc.getExTipoMovimentacao().getIdTpMov() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_SOLICITACAO_DE_ASSINATURA) {
+			return exUltMovNaoCanc.getLotaTitular().equivale(lotaTitular);
 		} else {
 			if (exUltMovNaoCanc.getLotaResp() != null) {
 				if (!exUltMovNaoCanc.getLotaResp().equivale(lotaTitular))
@@ -1844,6 +1879,70 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 		return getConf().podePorConfiguracao(titular, lotaTitular,
 				mov.getIdTpMov(),
 				CpTipoConfiguracao.TIPO_CONFIG_CANCELAR_MOVIMENTACAO);
+	}
+
+	/**
+	 * Retorna se é possível cancelar uma ciência de documento
+	 * <ul>
+	 * <li>Precisa ser via ou volume</li>
+	 * <li>Móbil não pode estar em trânsito</li>
+	 * <li>Móbil não pode estar cancelado</li>
+	 * <li>Não pode cancelar ciência se a última mov não for Ciência, Definir Marcação ou Definir Perfil
+	 * <li>Última mov de ciência não pode ter sido cancelada</li>
+	 * <li>Somente o usuário que criou a ciência pode desfazer a mesma</li>
+	 * </ul>
+	 * 
+	 * @param titular
+	 * @param lotaTitular
+	 * @param mob
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean podeCancelarCiencia(final DpPessoa titular,
+			final DpLotacao lotaTitular, final ExMobil mob) {
+		ExMovimentacao movCiencia = null;
+
+		if (!mob.isVia() && !mob.isVolume())
+			return false;
+		
+		if (mob.isEmTransito()
+				|| mob.isCancelada())
+				return false;
+
+		final ExMovimentacao ultMovNaoCancelada = mob
+				.getUltimaMovimentacaoNaoCancelada();
+		final ExMovimentacao ultMov = mob.getUltimaMovimentacao();
+		
+		if (ultMov == null || ultMovNaoCancelada == null)
+			return false;
+
+		if (ultMovNaoCancelada.getExTipoMovimentacao().getIdTpMov() != ExTipoMovimentacao.TIPO_MOVIMENTACAO_CIENCIA &&
+				ultMovNaoCancelada.getExTipoMovimentacao().getIdTpMov() != ExTipoMovimentacao.TIPO_MOVIMENTACAO_MARCACAO &&
+				ultMovNaoCancelada.getExTipoMovimentacao().getIdTpMov() != ExTipoMovimentacao.TIPO_MOVIMENTACAO_VINCULACAO_PAPEL)
+			return false;
+		
+		Set <ExMovimentacao> setMovCiente = mob.getMovsNaoCanceladas(ExTipoMovimentacao.TIPO_MOVIMENTACAO_CIENCIA);
+
+		if (setMovCiente == null) 
+			return false;
+		
+		for (ExMovimentacao mov : setMovCiente) {
+			if (mov.getCadastrante() != null &&  mov.getCadastrante().equivale(titular)) {
+				movCiencia = mov;
+				break;
+			}
+		}
+		
+		if (movCiencia == null || movCiencia.isCancelada())
+				return false;
+		
+		return (mob.isCiente(titular)
+				&& getConf()
+					.podePorConfiguracao(
+						titular,
+						lotaTitular,
+						ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_DE_MOVIMENTACAO,
+						CpTipoConfiguracao.TIPO_CONFIG_MOVIMENTAR));
 	}
 
 	/**
@@ -2316,7 +2415,8 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 						.getSubscritor().equivale(titular))
 				&& (mob.doc().getTitular() != null && !mob.doc().getTitular()
 						.equivale(titular)))
-			if(!mob.getExDocumento().temPerfil(titular, lotaTitular, ExPapel.PAPEL_GESTOR))
+			if(!mob.getExDocumento().temPerfil(titular, lotaTitular, ExPapel.PAPEL_GESTOR)
+					&& !mob.getExDocumento().temPerfil(titular, lotaTitular, ExPapel.PAPEL_REVISOR))
 				return false;
 		
 		if (!getConf().podePorConfiguracao(titular, lotaTitular, mob.doc().getExFormaDocumento(),
@@ -2528,8 +2628,10 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 		
 		return (mob.getExDocumento().isFinalizado())								
 				&& !mob.isEmTransito()
-				&& podeMovimentar(titular, lotaTitular, mob);
-
+				&& podeMovimentar(titular, lotaTitular, mob)
+				&& getConf().podePorConfiguracao(titular, lotaTitular, mob.getDoc().getExTipoDocumento(), mob.getDoc().getExFormaDocumento(), 
+						mob.getDoc().getExModelo(), CpTipoConfiguracao.TIPO_CONFIG_INCLUIR_DOCUMENTO);
+		
 	}
 	
 	/**
@@ -2799,10 +2901,10 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 		if (mov.isCancelada())
 			return false;
 		
-		if ((mov.getSubscritor()!= null && mov.getSubscritor().equivale(titular))||( mov.getSubscritor()==null && mov.getLotaSubscritor().equivale(lotaTitular)))
+		if ((mov.getSubscritor() != null && mov.getSubscritor().equivale(titular))||( mov.getSubscritor()==null && mov.getLotaSubscritor()!=null && mov.getLotaSubscritor().equivale(lotaTitular)))
 			return true;
 
-		if ((mov.getCadastrante()!= null && mov.getCadastrante().equivale(titular))||( mov.getCadastrante()==null && mov.getLotaCadastrante().equivale(lotaTitular)))
+		if ((mov.getCadastrante() != null && mov.getCadastrante().equivale(titular)) || (mov.getCadastrante()==null && mov.getLotaCadastrante() != null && mov.getLotaCadastrante().equivale(lotaTitular)))
 			return true;
 
 		return getConf().podePorConfiguracao(titular, lotaTitular,
@@ -3055,7 +3157,8 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 							.getSubscritor().equivale(titular))
 					&& (mob.doc().getTitular() != null && !mob.doc()
 							.getTitular().equivale(titular))
-					&& !mob.getExDocumento().temPerfil(titular, lotaTitular, ExPapel.PAPEL_GESTOR))
+					&& !mob.getExDocumento().temPerfil(titular, lotaTitular, ExPapel.PAPEL_GESTOR)
+					&& !mob.getExDocumento().temPerfil(titular, lotaTitular, ExPapel.PAPEL_REVISOR))
 				return false;
 		return getConf().podePorConfiguracao(titular, lotaTitular,
 				CpTipoConfiguracao.TIPO_CONFIG_FINALIZAR);
@@ -3211,7 +3314,7 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 				&& !mob.doc().isSemEfeito()
 				&& podePorConfiguracao(titular, lotaTitular,
 						ExTipoMovimentacao.TIPO_MOVIMENTACAO_JUNTADA,
-						CpTipoConfiguracao.TIPO_CONFIG_MOVIMENTAR, null);
+						CpTipoConfiguracao.TIPO_CONFIG_MOVIMENTAR, null, null, null, null, null, null);
 
 		// return true;
 	}
@@ -3746,6 +3849,7 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 	 * <li>Móbil tem de ser via ou volume</li>
 	 * <li>A última movimentação não cancelada do móbil não pode ser
 	 * transferência externa <b>(regra falha, pois pode ser feita anotação)</b></li>
+	 * e não pode ser Recebimento <b>(corrige recebimentos duplicados)</b></li>
 	 * <li>Móbil não pode estar marcado como "Despacho pendente de assinatura",
 	 * ou seja, tendo havido despacho ou despacho com transferência, este
 	 * precisa ter sido assinado para haver transferência</li>
@@ -3775,7 +3879,8 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 		if (ultMov == null)
 			return false;
 		if (ultMov.getExTipoMovimentacao().getIdTpMov() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_TRANSFERENCIA_EXTERNA
-				|| ultMov.getExTipoMovimentacao().getIdTpMov() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_DESPACHO_TRANSFERENCIA_EXTERNA)
+				|| ultMov.getExTipoMovimentacao().getIdTpMov() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_DESPACHO_TRANSFERENCIA_EXTERNA
+				|| ultMov.getExTipoMovimentacao().getIdTpMov() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_RECEBIMENTO )
 			return false;
 		// Verifica se o despacho já está assinado
 		for (CpMarca marca : mob.getExMarcaSet()) {
@@ -4311,7 +4416,53 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 
 		return resposta.booleanValue();
 	}
+	/*
+	 * Retorna se é possível incluir ciencia do documento a que pertence o
+	 * móbil passado por parâmetro, conforme as seguintes condições:
+	 * <ul>
+	 * <li>Modelo do documento pode incluir documentos</li>
+	 * <li>Documento não foi tramitado</li>
+	 * <li>Documento tem de estar assinado ou autenticado</li>
+	 * <li>Documento não pode estar juntado a outro</li>
+	 * <li>Usuario não fez ciência ainda</li>
+	 * <li>Não pode haver configuração impeditiva</li>
+	 * </ul>
+	 * 
+	 * @param titular
+	 * @param lotaTitular
+	 * @param mob
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean podeFazerCiencia(final DpPessoa titular,
+			final DpLotacao lotaTitular, final ExMobil mob) {
 
+		if (mob.doc().isExternoCapturado() && mob.getDoc().getAutenticacoesComTokenOuSenha().isEmpty())
+				return false;
+		
+		return (SigaMessages.isSigaSP()
+					&& !mob.doc().isPendenteDeAssinatura() 
+					&& !mob.isCiente(titular) 
+					&& !mob.isEmTransito() 
+					&& !mob.isEliminado() 
+					&& !mob.isJuntado()
+					&& !mob.isArquivado()
+					&& !mob.isVolumeEncerrado()
+					&& !getConf()
+							.podePorConfiguracao(
+									titular, 
+									lotaTitular, 
+									mob.getDoc().getExTipoDocumento(), 
+									mob.getDoc().getExFormaDocumento(), 
+									mob.getDoc().getExModelo(), CpTipoConfiguracao.TIPO_CONFIG_INCLUIR_DOCUMENTO)
+					&& getConf()
+							.podePorConfiguracao(
+									titular,
+									lotaTitular,
+									ExTipoMovimentacao.TIPO_MOVIMENTACAO_CIENCIA,
+									CpTipoConfiguracao.TIPO_CONFIG_MOVIMENTAR));
+	}
+	
 	/**
 	 * Método genérico que recebe função por String e concatena com o método de
 	 * checagem de permissão correspondente. Por exemplo, para a função
@@ -4437,8 +4588,9 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 		final boolean podeMovimentar = podeMovimentar(titular, lotaTitular, mob);
 
 		return (!mob.isGeral() && mob.doc().isExpediente()
-				&& !mob.doc().isPendenteDeAssinatura() && !mob.isEmTransito() && podeMovimentar);
-
+				&& !mob.doc().isPendenteDeAssinatura() && !mob.isEmTransito() && podeMovimentar && getConf().podePorConfiguracao(titular, lotaTitular,
+						ExTipoMovimentacao.TIPO_MOVIMENTACAO_AUTUAR,
+						CpTipoConfiguracao.TIPO_CONFIG_MOVIMENTAR));
 	}
 
 }

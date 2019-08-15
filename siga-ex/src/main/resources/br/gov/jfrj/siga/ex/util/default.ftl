@@ -1943,7 +1943,7 @@ Pede deferimento.</span><br/><br/><br/>
     <!-- FIM SUBSCRITOR [#nested/] -->
 [/#macro]
 
-[#macro cabecalhoCentralizadoPrimeiraPagina orgaoCabecalho=""]
+[#macro cabecalhoCentralizadoPrimeiraPagina orgaoCabecalho=true]
 <table style="float:none; clear:both;" width="100%" align="left" border="0" cellpadding="0"
     cellspacing="0" bgcolor="#FFFFFF">
     <tr bgcolor="#FFFFFF">
@@ -1964,7 +1964,7 @@ Pede deferimento.</span><br/><br/><br/>
                 </td>
             </tr>
             [/#if]
-            [#if orgaoCabecalho??]
+            [#if orgaoCabecalho]
 	            <tr>
 	                <td width="100%" align="center">
 	                <p style="font-family: AvantGarde Bk BT, Arial; font-size: 8pt;">
@@ -3625,11 +3625,12 @@ Pede deferimento.</span><br/><br/><br/>
     <tr bgcolor="#FFFFFF">
         <td width="100%">
         <table width="100%" border="0" cellpadding="2">
-            [#if tipo == "PORTARIA EMARF"]
+[#--            [#if tipo == "PORTARIA EMARF"]
             <tr>
                 <td width="100%" align="center" valign="bottom"><img src="contextpath/imagens/brasaoemarf.jpg" width="65" height="65" /></td>
             </tr>
             [#else]
+--]            
             <tr>
                 <td width="100%" align="center" valign="bottom"><img src="${_pathBrasao}" width="65" height="65" /></td>
             </tr>
@@ -3657,7 +3658,7 @@ Pede deferimento.</span><br/><br/><br/>
                 [/#if]</p>
                 </td>
             </tr>
-            [/#if]
+[#--            [/#if] --]
         </table>
         </td>
     </tr>
@@ -4218,6 +4219,6 @@ Pede deferimento.</span><br/><br/><br/>
 ${texto} 
 [/#macro]
 
-[#assign _pathBrasao = "contextpath/imagens/brasao2.png" /]
+[#assign _pathBrasao = "contextpath/imagens/brasaoColoridoTRF2.png" /]
 [#assign _tituloGeral = "PODER JUDICIÁRIO" /]
 [#assign _subtituloGeral = "JUSTIÇA FEDERAL" /]

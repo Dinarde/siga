@@ -1,5 +1,19 @@
 var newwindow = '';
 
+function testpdf(x) {
+	padrao = /\.pdf/;
+	a = x.arquivo.value;
+	if(a.length > 3) {
+		a = a.substr(0, a.length - 3) + a.substring(a.length - 3, a.length).toLowerCase();
+	}
+	OK = padrao.exec(a);
+	if (a != '' && !OK) {
+		window.alert("Somente é permitido anexar arquivo PDF!");
+		x.arquivo.value = '';
+		x.arquivo.focus();
+	}
+}
+
 /*function popitup(url) {
 	if (!newwindow.closed && newwindow.location) {
 		console.log("teste 1"); 
@@ -160,12 +174,14 @@ function verifica_data(data, naoObriga) {
 				|| (mes == "") || (ano == "")) {
 			msg = msg
 			+ "A data deve estar num dos seguintes formatos: DD/MM/AAAA ou DDMMAAAA\n";
+			data.style.color = "red";
 			alert(msg);
 			return;
 		}
 
 		if (isNaN(dia) || isNaN(mes) || isNaN(ano)) {
 			msg = msg + "A data só pode conter caracteres numéricos\n";
+			data.style.color = "red";
 			alert(msg);
 			return;
 		}
@@ -183,8 +199,8 @@ function verifica_data(data, naoObriga) {
 		}
 
 		if (msg.length > 0) {
+			data.style.color = "red";
 			alert(msg);
-			data.focus();
 			return;
 		}
 		if (dia.length < 2) {
@@ -203,6 +219,7 @@ function verifica_data(data, naoObriga) {
 			ano = "2" + ano.substring(ano.length - 3, ano.length);
 		}
 		data.value = dia + "/" + mes + "/" + ano;
+		data.style.color = "black";
 	}
 }
 

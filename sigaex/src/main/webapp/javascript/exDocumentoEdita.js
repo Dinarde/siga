@@ -2,26 +2,15 @@
  * 
  */
 
-function testpdf(x) {
-	padrao = /\.pdf/;
-	a = x.arquivo.value;
-	if(a.length > 3) {
-		a = a.substr(0, a.length - 3) + a.substring(a.length - 3, a.length).toLowerCase();
-	}
-	OK = padrao.exec(a);
-	if (a != '' && !OK) {
-		window.alert("Somente é permitido anexar arquivo PDF!");
-		x.arquivo.value = '';
-		x.arquivo.focus();
-	}
-}
-
 function displayPersonalizacao(thisElement) {
 	var thatElement = document.getElementById('tr_personalizacao');
 	if (thisElement.checked)
 		thatElement.style.display = '';
-	else
+	else {
 		thatElement.style.display = 'none';
+		document.getElementById('personalizarFuncao').value = '';
+		document.getElementById('personalizarUnidade').value = '';
+	}
 }
 
 function personalizacaoSeparar() {

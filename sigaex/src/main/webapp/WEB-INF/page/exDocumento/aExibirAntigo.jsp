@@ -6,6 +6,7 @@
 <%@ taglib uri="http://localhost/functiontag" prefix="f"%>
 <%@ taglib uri="http://localhost/jeetags" prefix="siga"%>
 <%@ taglib uri="http://localhost/libstag" prefix="libs"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
 
 <%@page import="br.gov.jfrj.siga.ex.ExMovimentacao"%>
 <%@page import="br.gov.jfrj.siga.ex.ExMobil"%>
@@ -90,7 +91,7 @@
 				</c:if>
 			</c:forEach>
 			<c:if test="${temmov}">
-					<table class="table table-hover table-striped mov mt-2">
+					<table class="table table-sm table-hover table-striped mov mt-2">
 						<thead class="thead-dark align-middle text-center">
 							<tr>
 								<th class="text-center" rowspan="2">
@@ -119,24 +120,24 @@
 							</tr>
 							<tr>
 								<th class="text-left">
-									Lotação
+									<fmt:message key="usuario.lotacao"/>
 								</th>
 								<th class="text-left">
-									Pessoa
+									<fmt:message key="usuario.pessoa"/>
 								</th>
 								<c:if test="${ (exibirCompleto == 'true')}">
 									<th class="text-left">
-										Lotação
+										<fmt:message key="usuario.lotacao"/>
 									</th>
 									<th class="text-left">
-										Pessoa
+										<fmt:message key="usuario.pessoa"/>
 									</th>
 								</c:if>
 								<th class="text-left">
-									Lotação
+									<fmt:message key="usuario.lotacao"/>
 								</th>
 								<th class="text-left">
-									Pessoa
+									<fmt:message key="usuario.pessoa"/>
 								</th>
 							</tr>
 						</thead>
@@ -203,7 +204,7 @@
 											${mov.complemento}
 										</c:if>
 										<c:set var="assinadopor" value="${true}" />
-										<siga:links inline="${true}"
+										<siga:links buttons="${false}" inline="${true}"
 											separator="${not empty mov.descricao and mov.descricao != null}">
 											<c:forEach var="acao" items="${mov.acoes}">
 												<siga:link title="${acao.nomeNbsp}" pre="${acao.pre}" pos="${acao.pos}" 
@@ -218,12 +219,12 @@
 										</siga:links>
 									</td>
 									<c:if test="${exibirCompleto != 'true' and mov.duracaoSpan > 0}">
-										<td class="duracaoborderbottom text-center" rowspan="${mov.duracaoSpan}">
+										<td class="duracaoborderbottom text-center bg-white" rowspan="${mov.duracaoSpan}">
 											${mov.duracao}
 										</td>
 									</c:if>
 									<c:if test="${exibirCompleto == 'true' and mov.duracaoSpanExibirCompleto > 0}">
-										<td class="duracaoborderbottom text-center" rowspan="${mov.duracaoSpanExibirCompleto}">
+										<td class="duracaoborderbottom text-center bg-white" rowspan="${mov.duracaoSpanExibirCompleto}">
 											${mov.duracao}
 										</td>
 									</c:if>
@@ -247,7 +248,7 @@
 					<c:if test="${m.apensos.size() gt 1}">
 						s
 					</c:if>
-					Filho
+					<fmt:message key="documento.filho"/>
 					<c:if test="${m.apensos.size() gt 1}">
 						s
 					</c:if>
