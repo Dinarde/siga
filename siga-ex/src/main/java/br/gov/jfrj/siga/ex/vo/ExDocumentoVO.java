@@ -297,9 +297,6 @@ public class ExDocumentoVO extends ExVO {
 				.add(ExTipoMovimentacao.TIPO_MOVIMENTACAO_COPIA);
 		movimentacoesPermitidas
 				.add(ExTipoMovimentacao.TIPO_MOVIMENTACAO_CIENCIA);		
-
-		
-		
 		movimentacoesPermitidas
 				.add(ExTipoMovimentacao.TIPO_MOVIMENTACAO_INCORPORACAO);
 		movimentacoesPermitidas

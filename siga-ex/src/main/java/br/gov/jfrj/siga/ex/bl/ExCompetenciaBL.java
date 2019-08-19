@@ -4709,5 +4709,101 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 				ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_INCORPORACAO,
 				CpTipoConfiguracao.TIPO_CONFIG_MOVIMENTAR);
 	}
+	
+
+	/**
+	 * Retorna se é possível incorporar este mobil a outro. Seguem as regras:
+	 * <ul>
+	 * <li>Móbil tem de ser volume</li>
+	 * <li>Documento tem de ser processo</li>
+	 * <li>Móbil não pode estar cancelado</li>
+	 * <li>Volume não pode estar encerrado</li>
+	 * <li>Móbil não pode estar em trânsito</li>
+	 * <li><i>podeMovimentar()</i> tem de ser verdadeiro para o móbil/usuário</li>
+	 * <li>Documento tem de estar assinado</li>
+	 * <li>Móbil não pode estar incorporado </li>
+	 * <li>Móbil não pode estar em algum arquivo</li>
+	 * <li>Não pode haver configuração impeditiva</li>
+	 * </ul>
+	 * 
+	 * @param titular
+	 * @param lotaTitular
+	 * @param mob
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean podeIncorporar(final DpPessoa titular,
+			final DpLotacao lotaTitular, final ExMobil mob) {
+
+		if (!mob.isVolume())
+			return false;
+		
+		if (mob.isIncorporado())
+			return false;
+		
+		if (!mob.doc().isProcesso())
+			return false;
+		
+		if (mob.isPendenteDeAnexacao())
+			return false;
+		
+		return !mob.isCancelada()
+				&& !mob.isVolumeEncerrado()
+				&& !mob.isEmTransito()
+				&& podeMovimentar(titular, lotaTitular, mob)
+
+				&& (!mob.doc().isPendenteDeAssinatura() || mob.doc().isInternoCapturado())
+				&& !mob.isJuntado()
+				&& !mob.isApensado()
+				&& !mob.isArquivado()
+				&& !mob.isSobrestado()
+				&& !mob.doc().isSemEfeito()
+				&& podePorConfiguracao(titular, lotaTitular,
+						ExTipoMovimentacao.TIPO_MOVIMENTACAO_INCORPORACAO,
+						CpTipoConfiguracao.TIPO_CONFIG_MOVIMENTAR, null);
+	}
+	
+	/**
+	 * Retorna se é possível desincorporar mobil de outro. Regras:
+	 * <ul>
+	 * <li>Móbil tem de ser volume</li>
+	 * <li>Móbil tem de estar incorporado</li>
+	 * <li>Móbil não pode estar em trânsito</li>
+	 * <li>Móbil não pode estar cancelado</li>
+	 * <li>Não pode haver configuração impeditiva. Tipo de configuração:
+	 * Desincorporação</li>
+	 * </ul>
+	 * 
+	 * @param titular
+	 * @param lotaTitular
+	 * @param mob
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean podeDesincorporar(final DpPessoa titular,
+			final DpLotacao lotaTitular, final ExMobil mob) {
+		
+		if (!mob.isVolume())
+			return false;
+		
+		final ExMovimentacao ultMovNaoCancelada = mob
+				.getUltimaMovimentacaoNaoCancelada();
+
+		if (ultMovNaoCancelada == null)
+			return false;
+
+		ExMobil mobPai = mob.getMobilPrincipal(new IncorporacaoPredicator());
+		if (mobPai == null)
+			return false;
+
+		if (mob.isEmTransito()
+				|| mob.isCancelada()
+				|| !podeMovimentar(titular,lotaTitular, mobPai) || !mob.isIncorporado())
+			return false;
+		
+		return getConf().podePorConfiguracao(titular, lotaTitular,
+				ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_INCORPORACAO,
+				CpTipoConfiguracao.TIPO_CONFIG_MOVIMENTAR);
+	}
 
 }

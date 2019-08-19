@@ -562,8 +562,6 @@ public class ExMobilVO extends ExVO {
 						.podeCancelarCiencia(titular, lotaTitular, mob), null,
 				null, null, null, null);
 
-		
-
 		addAcao("page_white_go",
 				"Incorporar",
 				"/app/expediente/mov",
