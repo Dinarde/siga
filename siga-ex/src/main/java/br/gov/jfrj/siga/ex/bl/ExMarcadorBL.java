@@ -158,7 +158,14 @@ public class ExMarcadorBL {
 			if (t == ExTipoMovimentacao.TIPO_MOVIMENTACAO_CONFERENCIA_COPIA_COM_SENHA) {
 				acrescentarMarca(CpMarcador.MARCADOR_MOVIMENTACAO_CONFERIDA_COM_SENHA, dt, mov.getSubscritor(), null);
 			}
-
+			
+			//Alterado para a incorporacao
+			if (t == ExTipoMovimentacao.TIPO_MOVIMENTACAO_INCORPORACAO)
+				m = CpMarcador.MARCADOR_JUNTADO;
+			
+			if (t == ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_INCORPORACAO)
+				m = CpMarcador.MARCADOR_EM_ANDAMENTO;
+				
 			if (m != mAnterior) {
 				dt = mov.getDtIniMov();
 				mAnterior = m;

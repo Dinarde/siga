@@ -239,5 +239,9 @@ public class ExTipoMovimentacao extends AbstractExTipoMovimentacao implements Se
 	}
 
 	/* Add customized code below */
+	
+	final static public long TIPO_MOVIMENTACAO_INCORPORACAO = 66;
+	
+	final static public long TIPO_MOVIMENTACAO_CANCELAMENTO_INCORPORACAO = 67;
 
 }

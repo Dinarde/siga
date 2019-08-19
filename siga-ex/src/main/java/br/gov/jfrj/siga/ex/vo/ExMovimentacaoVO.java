@@ -54,12 +54,12 @@ import static br.gov.jfrj.siga.ex.ExTipoMovimentacao.TIPO_MOVIMENTACAO_TRANSFERE
 import static br.gov.jfrj.siga.ex.ExTipoMovimentacao.TIPO_MOVIMENTACAO_VINCULACAO_PAPEL;
 import static br.gov.jfrj.siga.ex.ExTipoMovimentacao.hasDespacho;
 
+import static br.gov.jfrj.siga.ex.ExTipoMovimentacao.TIPO_MOVIMENTACAO_INCORPORACAO;
+import static br.gov.jfrj.siga.ex.ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_INCORPORACAO;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
-
-import com.auth0.jwt.JWTSigner;
-import com.auth0.jwt.JWTVerifier;
 
 import br.gov.jfrj.siga.base.AplicacaoException;
 import br.gov.jfrj.siga.base.Data;
@@ -70,6 +70,9 @@ import br.gov.jfrj.siga.ex.ExMovimentacao;
 import br.gov.jfrj.siga.ex.ExTipoMovimentacao;
 import br.gov.jfrj.siga.ex.bl.Ex;
 import br.gov.jfrj.siga.ex.util.ProcessadorReferencias;
+
+import com.auth0.jwt.JWTSigner;
+import com.auth0.jwt.JWTVerifier;
 
 public class ExMovimentacaoVO extends ExVO {
 	private static final String JWT_FIXED_HEADER = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.";
@@ -243,7 +246,9 @@ public class ExMovimentacaoVO extends ExVO {
 					&& idTpMov != TIPO_MOVIMENTACAO_INCLUSAO_DE_COSIGNATARIO
 					&& idTpMov != TIPO_MOVIMENTACAO_CONFERENCIA_COPIA_DOCUMENTO
 					&& idTpMov != TIPO_MOVIMENTACAO_AGENDAMENTO_DE_PUBLICACAO && idTpMov != TIPO_MOVIMENTACAO_ANEXACAO
-					&& idTpMov != TIPO_MOVIMENTACAO_ANEXACAO_DE_ARQUIVO_AUXILIAR) {
+					&& idTpMov != TIPO_MOVIMENTACAO_ANEXACAO_DE_ARQUIVO_AUXILIAR
+					&& idTpMov != TIPO_MOVIMENTACAO_INCORPORACAO
+					&& idTpMov != TIPO_MOVIMENTACAO_CANCELAMENTO_INCORPORACAO) {
 				if (!mov.isCancelada() && !mov.mob().doc().isSemEfeito())
 
 					if ((idTpMov == ExTipoMovimentacao.TIPO_MOVIMENTACAO_DESPACHO
@@ -456,7 +461,48 @@ public class ExMovimentacaoVO extends ExVO {
 			addAcao(null, mov.getNmArqMov(), "/app/arquivo", "download", mov.getNmArqMov() != null, null,
 					"arquivo=" + mov.getReferenciaZIP(), null, null, null);
 		}
+		
+		
+		if (idTpMov == ExTipoMovimentacao.TIPO_MOVIMENTACAO_INCORPORACAO) {
+			descricao = null;
+			if (originadaAqui) {
+				if (mov.getExMobilRef() != null) {
 
+					String mensagemPos = null;
+
+					if (!mov.getExMobilRef().getExDocumento().getDescrDocumento()
+							.equals(mov.getExMobil().getExDocumento().getDescrDocumento()))
+						mensagemPos = " Descrição: " + mov.getExMobilRef().getExDocumento().getDescrDocumento();
+
+					addAcao(null, mov.getExMobilRef().getSigla(), "/app/expediente/doc", "exibir", true, null,
+							"sigla=" + mov.getExMobilRef().getSigla(), "Incorporado ao documento: ", mensagemPos, null);
+				} else {
+					descricao = "Incorporado ao documento: " + mov.getDescrMov();
+				}
+			} else {
+
+				String mensagemPos = null;
+
+				if (!mov.getExMobil().getExDocumento().getDescrDocumento()
+						.equals(mov.getExMobilRef().getExDocumento().getDescrDocumento()))
+					mensagemPos = " Descrição: " + mov.getExDocumento().getDescrDocumento();
+
+				addAcao(null, mov.getExMobil().getSigla(), "/app/expediente/doc", "exibir", true, null,
+						"sigla=" + mov.getExMobil().getSigla(), "Documento incorporado: ", mensagemPos, null);
+			}
+		}
+		
+		if (idTpMov == ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_INCORPORACAO) {
+			descricao = null;
+			if (originadaAqui) {
+				addAcao(null, mov.getExMobilRef().getSigla(), "/app/expediente/doc", "exibir", true, null,
+						"sigla=" + mov.getExMobilRef().getSigla(), "Desincorporado do documento: ", null, null);
+			} else {
+				addAcao(null, mov.getExMobil().getSigla(), "/app/expediente/doc", "exibir", true, null,
+						"sigla=" + mov.getExMobil().getSigla(), "Documento desincorporado: ", null, null);
+			}
+		}
+		
 		if (descricao != null && descricao.equals(mov.getObs())) {
 			descricao = ProcessadorReferencias.marcarReferenciasParaDocumentos(descricao, null);
 		}
@@ -498,12 +544,14 @@ public class ExMovimentacaoVO extends ExVO {
 				classe = "copia";
 				break;
 			case (int) TIPO_MOVIMENTACAO_JUNTADA:
+			case (int) TIPO_MOVIMENTACAO_INCORPORACAO:
 				classe = "juntada";
 				break;
 			case (int) TIPO_MOVIMENTACAO_JUNTADA_EXTERNO:
 				classe = "juntada_externo";
 				break;
 			case (int) TIPO_MOVIMENTACAO_CANCELAMENTO_JUNTADA:
+			case (int) TIPO_MOVIMENTACAO_CANCELAMENTO_INCORPORACAO:
 				classe = "desentranhamento";
 				break;
 			case (int) TIPO_MOVIMENTACAO_REFERENCIA:

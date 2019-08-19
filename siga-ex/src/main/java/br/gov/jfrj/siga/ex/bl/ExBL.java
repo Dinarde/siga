@@ -152,6 +152,7 @@ import br.gov.jfrj.siga.ex.util.ProcessadorModelo;
 import br.gov.jfrj.siga.ex.util.ProcessadorModeloFreemarker;
 import br.gov.jfrj.siga.ex.util.PublicacaoDJEBL;
 import br.gov.jfrj.siga.ex.util.BIE.ManipuladorEntrevista;
+import br.gov.jfrj.siga.ex.util.predicate.IncorporacaoPredicator;
 import br.gov.jfrj.siga.hibernate.ExDao;
 import br.gov.jfrj.siga.model.ContextoPersistencia;
 import br.gov.jfrj.siga.model.Objeto;
@@ -2747,7 +2748,8 @@ public class ExBL extends CpBL {
 				if (ultMovNaoCancelada.getExTipoMovimentacao().getIdTpMov() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_AGENDAMENTO_DE_PUBLICACAO)
 					PublicacaoDJEBL.cancelarRemessaPublicacao(mov);
 
-				if (ultMovNaoCancelada.getExTipoMovimentacao().getIdTpMov() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_JUNTADA
+				if ((ultMovNaoCancelada.getExTipoMovimentacao().getIdTpMov() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_JUNTADA
+					 || ultMovNaoCancelada.getExTipoMovimentacao().getIdTpMov() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_INCORPORACAO)
 						&& ultMovNaoCancelada.getExMovimentacaoRef() != null) {
 					mov.setExMobilRef(ultMovNaoCancelada.getExMovimentacaoRef()
 							.getExMobilRef());
@@ -4214,6 +4216,11 @@ public class ExBL extends CpBL {
 				throw new AplicacaoException(
 						"A via não pode ser juntada ao documento porque ele está arquivado");
 			
+			//Foi alterado aqui devido a incorporacao
+			if (mobPai.isIncorporado())
+				throw new AplicacaoException(
+						"A via não pode ser juntada ao documento porque ele está incorporado");
+			
 			
 			if (!getComp().podeMovimentar(docTitular, lotaCadastrante, mobPai))
 				throw new AplicacaoException(
@@ -4607,7 +4614,13 @@ public class ExBL extends CpBL {
 		if (!mobRef.getExDocumento().isFinalizado())
 			throw new AplicacaoException(
 					"não é possível vincular-se a um documento não finalizado");
-
+		
+		if (mob.getExDocumento().isProcesso()) {
+			if (mob.isIncorporado())
+				throw new AplicacaoException(
+						"não é possível vincular um documento que esta incorporado");
+		}
+			
 		try {
 			iniciarAlteracao();
 
@@ -5391,7 +5404,13 @@ public class ExBL extends CpBL {
 							&& ExTipoMovimentacao.hasDocumento(mov
 									.getExMovimentacaoRef().getIdTpMov()))) {
 				attrs.put("nmArqMod", "certidaoDesentranhamento.jsp");
-			} else {
+			} else if (mov.getExTipoMovimentacao() != null
+					&& mov.getIdTpMov() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_INCORPORACAO) {
+				attrs.put("nmArqMod", "certidaoDesincorporamento.jsp");
+			} else if (mov.getExTipoMovimentacao() != null
+					&& mov.getIdTpMov() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_INCORPORACAO) {
+				attrs.put("nmArqMod", "certidaoIncorporamento.jsp");
+		    } else {
 				if (mov.getExTipoDespacho() != null) {
 					attrs.put("despachoTexto", mov.getExTipoDespacho()
 							.getDescTpDespacho());
@@ -6172,7 +6191,12 @@ public class ExBL extends CpBL {
 		if (mobMestre.isJuntado())
 			throw new AplicacaoException(
 					"não é possível apensar a um documento juntado");
-
+		
+		//Foi alterado aqui devido a incorporacao
+		if (mobMestre.isIncorporado())
+			throw new AplicacaoException(
+					"não é possível apensar a um documento que está incorporado");
+		
 		if (mobMestre.isEmTransito())
 			throw new AplicacaoException(
 					"não é possível apensar a um documento em trânsito");
@@ -7285,4 +7309,178 @@ public class ExBL extends CpBL {
 			throw new AplicacaoException("Erro ao revisar documento.", 0, e);
 		}
 	}
+	
+	/**
+	 * 
+	 */
+	public Long incorporarDocumento(final DpPessoa cadastrante,
+			final DpPessoa docTitular, final DpLotacao lotaCadastrante,
+			final String idDocExterno, final ExMobil mob, ExMobil mobPai,
+			final Date dtMov, final DpPessoa subscritor,
+			final DpPessoa titular, final String idDocEscolha) {
+
+		if (mobPai == null)
+			throw new AplicacaoException(
+					"não foi selecionado um documento para a incorporação");
+		
+		if (!mobPai.doc().isProcesso())
+			throw new AplicacaoException(
+					"o documento selecionado não é um processo");
+		
+		if (!mobPai.isVolume())
+			throw new AplicacaoException(
+					"É necessário informar o volume a qual será feita a incorporação");
+		
+		if (mob.getExDocumento().getIdDoc()
+				.equals(mobPai.getExDocumento().getIdDoc())
+				&& mob.getNumSequencia().equals(mobPai.getNumSequencia())
+				&& mob.getExTipoMobil().getIdTipoMobil()
+						.equals(mobPai.getExTipoMobil().getIdTipoMobil()))
+			throw new AplicacaoException(
+					"não é possível incorporar um documento a ele mesmo");
+
+		if (!mobPai.getExDocumento().isFinalizado())
+			throw new AplicacaoException(
+					"não é possível incorporar a um documento não finalizado");
+		
+		if (mobPai.isIncorporado())
+			throw new AplicacaoException(
+					"o documento selecionado já possue um volume incorporado a ele");
+
+		if (mob.doc().isEletronico()) {
+			if (mob.temAnexosNaoAssinados() || mob.temDespachosNaoAssinados())
+				throw new AplicacaoException(
+						"não é possível incorporar documento com anexo/despacho pendente de assinatura ou conferência");
+		}
+
+		if (!mob.getDoc().isEletronico() && mobPai.getDoc().isEletronico())
+			throw new AplicacaoException(
+					"não é possível incorporar um documento físico a um documento eletrônico.");
+
+		// Verifica se o documeto pai já está apensado a este documento
+		for (ExMobil apenso : mob.getApensos()) {
+			if (apenso.getId() == mobPai.getId())
+				throw new AplicacaoException(
+						"não é possível incorporar um documento a um documento que está apensado a ele.");
+		}
+
+		if (mobPai.isCancelada())
+			throw new AplicacaoException(
+					"O processo não pode ser incorporado ao documento porque ele está cancelado.");
+
+		if (mobPai.isVolumeEncerrado())
+			throw new AplicacaoException(
+					"O processo não pode ser incorporado ao documento porque o volume está encerrado.");
+
+		if (mobPai.isEmTransito())
+			throw new AplicacaoException(
+					"O processo não pode ser incorporado ao documento porque ele está em trânsito.");
+
+		if (mobPai.isArquivado())
+			throw new AplicacaoException(
+					"O processo não pode ser incorporado ao documento porque ele está arquivado");
+
+		if (!getComp().podeMovimentar(docTitular, lotaCadastrante, mobPai))
+			throw new AplicacaoException(
+					"O processo não pode ser incorporado ao documento porque ele não pode ser movimentado.");
+
+		final ExMovimentacao mov;
+
+		try {
+			iniciarAlteracao();
+			Long idTpMov = ExTipoMovimentacao.TIPO_MOVIMENTACAO_INCORPORACAO;
+
+			mov = criarNovaMovimentacao(idTpMov, cadastrante, lotaCadastrante,
+					mob, dtMov, subscritor, null, titular, null, null);
+
+			mov.setExMobilRef(mobPai);
+
+			mov.setDescrMov("Incorporado ao documento "
+					+ mov.getExMobilRef().getCodigo().toString());
+
+			//Talvez nao muito sentido fazer esta validacao
+			//ja que a incorporacao so é feita em processos 
+			if (mobPai.getMobilPrincipal().isNumeracaoUnicaAutomatica()) {
+				mov.setNumPaginasOri(1);
+				/*H.Souza: TODO melhor rever o impacto de deixar isso fixo*/
+				criarCertidaoDeDesentranhamento(mov, mob, 1, 1, mov.getDescrMov());
+			}
+			
+			gravarMovimentacao(mov);
+			
+			atualizarMarcas(false, mob);
+			
+			if (idDocEscolha.equals("1")) {
+				encerrarVolumeAutomatico(cadastrante, lotaCadastrante,
+						mov.getExMobilRef(), dtMov);
+			}
+
+			Set<ExMovimentacao> movs = mob
+					.getTransferenciasPendentesDeDevolucao(mob);
+			if (!movs.isEmpty())
+				removerPendenciaDeDevolucao(movs, mob);
+			
+			concluirAlteracaoComRecalculoAcesso(mov.getExMobil());
+			
+			return mov.getIdMov();
+		} catch (final Exception e) {
+			cancelarAlteracao();
+			throw new AplicacaoException("Erro ao incorporar documento.", 0, e);
+		}
+
+	}
+	
+	public Long desincorporarDocumento(final DpPessoa cadastrante,
+			final DpLotacao lotaCadastrante, final ExMobil mob,
+			final Date dtMov, final DpPessoa subscritor, final DpPessoa titular, String textoMotivo)
+			throws AplicacaoException {
+		
+		try {
+
+			iniciarAlteracao();
+
+			final ExMovimentacao mov = criarNovaMovimentacao(
+					ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_INCORPORACAO,
+					cadastrante, lotaCadastrante, mob, dtMov, subscritor, null,
+					titular, null, null);
+
+			final ExMovimentacao ultMov = mob.getUltimaMovimentacao();
+
+			mov.setDescrMov(textoMotivo);
+
+			if (mov.getExNivelAcesso() == null)
+				mov.setExNivelAcesso(ultMov.getExNivelAcesso());
+
+			
+			mov.setExMovimentacaoRef(mov.getExMobil().getUltimaMovimentacao(ExTipoMovimentacao.TIPO_MOVIMENTACAO_INCORPORACAO));
+			
+			final ExMobil mobPai = mov.getExMovimentacaoRef().getExMobilRef();
+			if (mobPai.isArquivado())
+				throw new AplicacaoException(
+							"não é possível fazer o desincorporamento porque o documento ao qual este está incorporado encontra-se arquivado.");
+
+			final ExMovimentacao ultMovPai = mobPai.getUltimaMovimentacao();
+
+			mov.setExMobilRef(mobPai);
+
+			mov.setLotaResp(ultMovPai.getLotaResp());
+			mov.setResp(ultMovPai.getResp());
+
+			
+			if (mobPai.getMobilPrincipal().isNumeracaoUnicaAutomatica()) {
+				List<ExArquivoNumerado> ans = mov.getExMobil().filtrarArquivosNumerados(null, true);
+				armazenarCertidaoDeDesentranhamento(mov, mobPai.getMobilPrincipal(), ans, mov.getDescrMov());
+			}
+			
+			gravarMovimentacao(mov);
+			concluirAlteracaoComRecalculoAcesso(mov.getExMobil());
+			
+			return mov.getIdMov();
+		} catch (final Exception e) {
+			cancelarAlteracao();
+			throw new AplicacaoException("Erro ao cancelar incorporação.", 0, e);
+		}
+		
+	}
+
 }

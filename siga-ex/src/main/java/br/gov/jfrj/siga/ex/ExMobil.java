@@ -53,6 +53,9 @@ import br.gov.jfrj.siga.dp.DpLotacao;
 import br.gov.jfrj.siga.dp.DpPessoa;
 import br.gov.jfrj.siga.ex.bl.ExParte;
 import br.gov.jfrj.siga.ex.util.CronologiaComparator;
+import br.gov.jfrj.siga.ex.util.predicate.IncorporacaoPredicator;
+import br.gov.jfrj.siga.ex.util.predicate.JuntadaPredicator;
+import br.gov.jfrj.siga.ex.util.predicate.TpMovimentacaoPredicator;
 import br.gov.jfrj.siga.hibernate.ExDao;
 import br.gov.jfrj.siga.model.Selecionavel;
 import br.gov.jfrj.siga.persistencia.ExMobilDaoFiltro;
@@ -578,11 +581,7 @@ public class ExMobil extends AbstractExMobil implements Serializable, Selecionav
 	 * 
 	 */
 	public ExMobil getMobilPrincipal() {
-
-		if (getExMobilPai() == null)
-			return this;
-
-		return getExMobilPai().getMobilPrincipal();
+		return getMobilPrincipal(new JuntadaPredicator());
 	}
 
 	/**
@@ -1062,14 +1061,14 @@ public class ExMobil extends AbstractExMobil implements Serializable, Selecionav
 	 * @return Mobil pai do Mobil atual.
 	 * 
 	 */
-	public ExMobil getExMobilPai() {
+	public ExMobil getExMobilPai(TpMovimentacaoPredicator predicator) {
 		ExMobil m = null;
 		for (ExMovimentacao mov : getExMovimentacaoSet()) {
 			if (mov.isCancelada())
 				continue;
-			if (mov.getExTipoMovimentacao().getIdTpMov() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_JUNTADA)
+			if (predicator.accept(mov.getExTipoMovimentacao().getIdTpMov()))
 				m = mov.getExMobilRef();
-			if (mov.getExTipoMovimentacao().getIdTpMov() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_JUNTADA)
+			if (predicator.notAccept(mov.getExTipoMovimentacao().getIdTpMov()))
 				m = null;
 		}
 		return m;
@@ -2190,4 +2189,33 @@ public class ExMobil extends AbstractExMobil implements Serializable, Selecionav
 		}
 		return set;
 	}
+	
+	/**
+	 * Verifica se um Mobil está incorporado a outro. Um Mobil está em incorporado a
+	 * outro quando ele possui movimentação não cancelada do tipo: INCORPORACAO
+	 * e não possuem movimentação de cancelamento da incorporacao.
+	 * 
+	 */
+	public boolean isIncorporado() {	
+		return sofreuMov(ExTipoMovimentacao.TIPO_MOVIMENTACAO_INCORPORACAO,
+				ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_INCORPORACAO);
+	}
+	
+	public ExMobil getExMobilPai() {
+		return getExMobilPai(new JuntadaPredicator());
+	}
+	
+	/**
+	 * Retorno o mobil que atender o filtro 
+	 *  
+	 *  rever comentario {@link #getMobilPrincipal()}
+	 */
+	public ExMobil getMobilPrincipal(TpMovimentacaoPredicator predicator) {
+
+		if (getExMobilPai(predicator) == null)
+			return this;
+
+		return getExMobilPai(predicator).getMobilPrincipal(predicator);
+	}
+	
 }

@@ -28,7 +28,9 @@ public class ExArquivoNumerado implements Comparable {
 	private Date data;
 	private int nivel;
 	private boolean copia;
-
+	
+	private boolean omitirNumeracaoProcesso = true;
+	
 	public ExArquivo getArquivo() {
 		return arquivo;
 	}
@@ -89,8 +91,16 @@ public class ExArquivoNumerado implements Comparable {
 			ExMovimentacao mov = (ExMovimentacao) getArquivo();
 			if (mov.getNmArqMov() != null)
 				return mov.getNmArqMov().replace(".pdf", "");
-			else
-				return mov.getExMobil().getSigla();
+			else {
+				String prefixo = "";
+				if (mov.getExTipoMovimentacao().getIdTpMov() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_INCORPORACAO) {
+					prefixo = "CERTIDÃO DE INCORPORAÇÃO - ";
+				} else if (mov.getExTipoMovimentacao().getIdTpMov() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_INCORPORACAO) {
+					prefixo = "CERTIDÃO DE DESINCORPORAÇÃO - ";
+				}
+				
+				return prefixo + mov.getExMobil().getSigla();
+			}
 		}
 		return null;
 	};
@@ -153,9 +163,11 @@ public class ExArquivoNumerado implements Comparable {
 
 	public Integer getOmitirNumeracao() {
 		if (getArquivo() instanceof ExDocumento) {
-			ExDocumento doc = (ExDocumento) getArquivo();
-			if (doc.isProcesso())
-				return 1;
+			if (omitirNumeracaoProcesso) {
+				ExDocumento doc = (ExDocumento) getArquivo();
+				if (doc.isProcesso())
+					return 1;
+			}
 		}
 		return 0;
 	}
@@ -167,5 +179,9 @@ public class ExArquivoNumerado implements Comparable {
 	public void setCopia(boolean copia) {
 		this.copia = copia;
 	}
-
+	
+	public void setOmitirNumeracaoProcesso(boolean omitirNumeracaoProcesso) {
+		this.omitirNumeracaoProcesso = omitirNumeracaoProcesso;
+	}
+	
 }

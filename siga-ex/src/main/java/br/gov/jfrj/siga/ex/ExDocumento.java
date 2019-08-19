@@ -1569,7 +1569,7 @@ public class ExDocumento extends AbstractExDocumento implements Serializable,
 			incluirArquivos(mob, set);
 
 		// Incluir recursivamente
-		for (ExMovimentacao m : set) {
+		for (ExMovimentacao m : set) {			
 			ExArquivoNumerado an = new ExArquivoNumerado();
 			an.setNivel(nivel);
 			if (m.getExTipoMovimentacao().getId() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_JUNTADA) {
@@ -1587,6 +1587,36 @@ public class ExDocumento extends AbstractExDocumento implements Serializable,
 				list.add(an);
 				m.getExDocumento().getAnexosNumerados(m.getExMobilRef(), list,
 						nivel + 1, true);
+			} else if (m.getExTipoMovimentacao().getId() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_INCORPORACAO) {
+				//TODO rever isso pois ainda não é a melhor solução
+				boolean addArq = m.getExDocumento() != this;
+				
+				if (addArq) {
+					an.setArquivo(m.getExDocumento());
+					an.setMobil(m.getExMobil());
+					an.setData(m.getData());
+					an.setOmitirNumeracaoProcesso(false);
+					list.add(an);
+					
+					m.getExDocumento().getAnexosNumerados(m.getExMobil(), list,
+							nivel + 1, copia);
+				}
+				
+				addArq = true;
+				for (ExArquivoNumerado arq : list) {
+					if ((arq.getArquivo() instanceof ExMovimentacao) && arq.getArquivo().getIdDoc().equals(m.getIdMov())) {
+						addArq = false;
+						break;
+					}
+				}
+				
+				if (addArq) {
+					an = new ExArquivoNumerado();
+					an.setNivel(nivel);
+					an.setArquivo(m);
+					an.setMobil(m.getExMobil());
+					list.add(an);
+				}
 			} else {
 				an.setArquivo(m);
 				an.setMobil(m.getExMobil());
@@ -1616,20 +1646,31 @@ public class ExDocumento extends AbstractExDocumento implements Serializable,
 				if (!m.isCancelada()) {
 					if (m.getExTipoMovimentacao().getId() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_COPIA) {
 						set.add(m);
+					} else if(m.getExTipoMovimentacao().getId() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_INCORPORACAO) {
+						set.remove(m.getExMovimentacaoRef());
+//						set.add(m);
 					}
 				}
 			}
 		}
 		// Incluir os documentos juntados
 		if (mob.getExMovimentacaoReferenciaSet() != null)
-			for (ExMovimentacao m : mob.getExMovimentacaoReferenciaSet()) {
-				if (!m.isCancelada()) {
+			for (ExMovimentacao m : mob.getExMovimentacaoReferenciaSet()) {	
+				if (!m.isCancelada()) {					
 					if (m.getExTipoMovimentacao().getId() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_JUNTADA) {
+						
 						set.add(m);
 					} else if (m.getExTipoMovimentacao().getId() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_JUNTADA) {
+						
 						set.remove(m.getExMovimentacaoRef());
 						if (m.isPdf())
 							set.add(m);
+					} else if (m.getExTipoMovimentacao().getId() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_INCORPORACAO) {
+								
+						set.add(m);
+					} else if(m.getExTipoMovimentacao().getId() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_INCORPORACAO) {
+						set.remove(m.getExMovimentacaoRef());
+						set.add(m);
 					}
 				}
 			}

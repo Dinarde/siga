@@ -297,7 +297,17 @@ function visualizarImpressao() {
 			<div style="padding-left: 10;">
 				<div id="dados-assinatura" style="visible: hidden">
 					<input type="hidden" name="ad_url_base" value="" />
-					<input type="hidden" name="ad_url_next" value="/sigaex/app/expediente/mov/fechar_popup?sigla=${mob.sigla}" />
+					<c:choose>
+						<c:when test="${not empty adUrlNext}">
+							<input type="hidden" name="ad_url_next" value="" />
+							<script>
+								document.querySelector("input[name=ad_url_next]").value = decodeURIComponent("${adUrlNext}");
+							</script>
+						</c:when>
+						<c:otherwise>
+							<input type="hidden" name="ad_url_next" value="/sigaex/app/expediente/mov/fechar_popup?sigla=${mob.sigla}" />
+						</c:otherwise>
+					</c:choose>
 					<input type="hidden" name="ad_descr_0" value="${mov.referencia}" /> 
 					<input type="hidden" name="ad_url_pdf_0" value="/sigaex/app/arquivo/exibir?arquivo=${mov.nmPdf}" />
 					<input type="hidden" name="ad_url_post_0" value="/sigaex/app/expediente/mov/assinar_mov_gravar" />

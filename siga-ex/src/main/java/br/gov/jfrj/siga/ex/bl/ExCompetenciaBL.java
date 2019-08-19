@@ -53,6 +53,7 @@ import br.gov.jfrj.siga.ex.ExTipoDocumento;
 import br.gov.jfrj.siga.ex.ExTipoFormaDoc;
 import br.gov.jfrj.siga.ex.ExTipoMovimentacao;
 import br.gov.jfrj.siga.ex.ExVia;
+import br.gov.jfrj.siga.ex.util.predicate.IncorporacaoPredicator;
 import br.gov.jfrj.siga.hibernate.ExDao;
 
 public class ExCompetenciaBL extends CpCompetenciaBL {
@@ -574,6 +575,10 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 				CpTipoConfiguracao.TIPO_CONFIG_MOVIMENTAR, null, null, null, null, null, null);
 	
 		if (mob.doc().isFinalizado()) {
+			
+			if (mob.isIncorporado())
+				return false;
+			
 			return !mob.isEmTransito()
 					&& (!mob.isGeral() || (mob.doc().isExterno() && !mob.doc().jaTransferido()))
 					&& !mob.isJuntado()
@@ -824,6 +829,7 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 		
 		return mob.doc().isFinalizado()
 				&& (mob.isVia() || mob.isVolume())
+				&& !mob.isIncorporado()
 				&& podeMovimentar(titular, lotaTitular, mob)
 				&& !mob.isArquivado()
 				&& !mob.isApensadoAVolumeDoMesmoProcesso()
@@ -913,6 +919,10 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 			final DpLotacao lotaTitular, final ExMobil mob) {
 		if (!mob.doc().isProcesso())
 			return false;
+		
+		if (mob.isIncorporado())
+			return false;
+			
 		if (!mob.isGeral())
 			return false;
 
@@ -2626,6 +2636,9 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 		if(mob.isJuntado())
 			return false;
 		
+		if(mob.isIncorporado())
+			return false;
+		
 		return (mob.getExDocumento().isFinalizado())								
 				&& !mob.isEmTransito()
 				&& podeMovimentar(titular, lotaTitular, mob)
@@ -3343,7 +3356,10 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 
 		if (!mob.isVia() && !mob.isVolume())
 			return false;
-
+		
+		if (mob.isIncorporado())
+			return false;
+			
 		return !mob.isCancelada()
 				&& !mob.doc().isSemEfeito()
 				&& !mob.isEmTransito()
@@ -3921,7 +3937,10 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 
 		if (!(mob.isVia() || mob.isVolume()))
 			return false;
-
+		
+		if (mob.isIncorporado())
+			return false;
+			
 		return !mob.isEmTransito()
 				&& podeMovimentar(titular, lotaTitular, mob)
 				&& !mob.isJuntado()
@@ -4174,8 +4193,9 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 	public boolean podeSerTransferido(final ExMobil mob) {
 		if (mob.isPendenteDeAnexacao())
 			return false;
-
+		
 		return (mob.isVia() || mob.isVolume())
+				&& !mob.isIncorporado()
 				&& !mob.isEmTransito() && !mob.isJuntado()
 				&& !mob.isApensadoAVolumeDoMesmoProcesso()
 				&& !mob.isArquivado()
@@ -4257,7 +4277,10 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 
 		if (!(mob.isVia() || mob.isVolume()))
 			return false;
-
+		
+		if (mob.isIncorporado())
+			return false;
+		
 		return !mob.isEmTransito() && podeMovimentar(titular, lotaTitular, mob)
 				&& !mob.isJuntado();
 
@@ -4589,6 +4612,65 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 				&& !mob.doc().isPendenteDeAssinatura() && !mob.isEmTransito() && podeMovimentar && getConf().podePorConfiguracao(titular, lotaTitular,
 						ExTipoMovimentacao.TIPO_MOVIMENTACAO_AUTUAR,
 						CpTipoConfiguracao.TIPO_CONFIG_MOVIMENTAR));
+	}
+	
+	//TODO adicionar javadoc
+	//Metodo para controlar nivel de acesso da função de incorporação
+	public boolean podeIncorporar(final DpPessoa titular,
+			final DpLotacao lotaTitular, final ExMobil mob) {
+
+		if (!mob.isVolume())
+			return false;
+		
+		if (mob.isIncorporado())
+			return false;
+		
+		if (!mob.doc().isProcesso())
+			return false;
+		
+		if (mob.isPendenteDeAnexacao())
+			return false;
+		
+		return !mob.isCancelada()
+				&& !mob.isVolumeEncerrado()
+				&& !mob.isEmTransito()
+				&& podeMovimentar(titular, lotaTitular, mob)
+
+				&& (!mob.doc().isPendenteDeAssinatura() || mob.doc().isInternoCapturado())
+				&& !mob.isJuntado()
+				&& !mob.isApensado()
+				&& !mob.isArquivado()
+				&& !mob.isSobrestado()
+				&& !mob.doc().isSemEfeito()
+				&& podePorConfiguracao(titular, lotaTitular,
+						ExTipoMovimentacao.TIPO_MOVIMENTACAO_INCORPORACAO,
+						CpTipoConfiguracao.TIPO_CONFIG_MOVIMENTAR, null);
+	}
+	
+	public boolean podeDesincorporar(final DpPessoa titular,
+			final DpLotacao lotaTitular, final ExMobil mob) {
+		
+		if (!mob.isVolume())
+			return false;
+		
+		final ExMovimentacao ultMovNaoCancelada = mob
+				.getUltimaMovimentacaoNaoCancelada();
+
+		if (ultMovNaoCancelada == null)
+			return false;
+
+		ExMobil mobPai = mob.getMobilPrincipal(new IncorporacaoPredicator());
+		if (mobPai == null)
+			return false;
+
+		if (mob.isEmTransito()
+				|| mob.isCancelada()
+				|| !podeMovimentar(titular,lotaTitular, mobPai) || !mob.isIncorporado())
+			return false;
+		
+		return getConf().podePorConfiguracao(titular, lotaTitular,
+				ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_INCORPORACAO,
+				CpTipoConfiguracao.TIPO_CONFIG_MOVIMENTAR);
 	}
 
 }

@@ -771,7 +771,8 @@ public class Documento {
 				String sigla = mob.getSigla();
 				if (an.getArquivo() instanceof ExMovimentacao) {
 					ExMovimentacao m = (ExMovimentacao) an.getArquivo();
-					if (m.getExTipoMovimentacao().getId() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_JUNTADA)
+					if (m.getExTipoMovimentacao().getId() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_JUNTADA
+							|| m.getExTipoMovimentacao().getId() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_INCORPORACAO)
 						sigla = m.getExMobil().getSigla();
 				} else {
 					sigla = an.getMobil().getSigla();

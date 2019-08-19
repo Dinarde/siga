@@ -94,7 +94,7 @@ public abstract class ExSelecionavelController<T extends Selecionavel, DaoFiltro
 				CpMarcador.MARCADOR_SOBRESTADO, 
 				CpMarcador.MARCADOR_TRANSFERIDO_A_ORGAO_EXTERNO
 		};
-		return dao().listarMarcadores(ids);
+		return getEstados(ids);
 	}
 
 	protected Map<Integer, String> getListaTipoResp() {
@@ -120,4 +120,18 @@ public abstract class ExSelecionavelController<T extends Selecionavel, DaoFiltro
     	}
         return bundle;
     }
+	
+	protected List<CpMarcador> getEstados(Long[] ids) throws AplicacaoException {
+		return dao().listarMarcadores(ids);
+	}
+	
+	protected List<CpMarcador> getEstadosIncorporacao() throws AplicacaoException {
+		Long[] ids = {
+				CpMarcador.MARCADOR_CAIXA_DE_ENTRADA,
+				CpMarcador.MARCADOR_EM_ANDAMENTO
+		};
+		
+		return dao().listarMarcadores(ids);
+	}
+	
 }

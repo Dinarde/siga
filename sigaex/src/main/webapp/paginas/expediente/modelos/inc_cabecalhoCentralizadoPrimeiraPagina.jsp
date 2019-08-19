@@ -10,8 +10,16 @@
 		<td width="100%">
 		<table width="100%" border="0" cellpadding="2">
 			<tr>
-				<td width="100%" align="center" valign="bottom"><img
-					src="contextpath/imagens/brasao2.png" width="65" height="65" /></td>
+				<td width="100%" align="center" valign="bottom">
+					<c:choose>
+						<c:when test="${empty f:resource('siga.ex.modelos.cabecalho.brasao')}">
+							<img src="contextpath/imagens/brasao2.png" width="65" height="65" />
+						</c:when>
+						<c:otherwise>
+							<img src="${f:resource('siga.ex.modelos.cabecalho.brasao')}" width="65" height="65" />
+						</c:otherwise>
+					</c:choose>
+				</td>
 			</tr>
 			<tr>
 				<td width="100%" align="center">

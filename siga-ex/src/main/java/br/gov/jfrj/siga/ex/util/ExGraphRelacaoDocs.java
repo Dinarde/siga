@@ -8,6 +8,8 @@ import java.util.Map;
 import br.gov.jfrj.siga.dp.DpPessoa;
 import br.gov.jfrj.siga.ex.ExDocumento;
 import br.gov.jfrj.siga.ex.ExMobil;
+import br.gov.jfrj.siga.ex.util.predicate.IncorporacaoPredicator;
+import br.gov.jfrj.siga.ex.util.predicate.JuntadaPredicator;
 
 public class ExGraphRelacaoDocs extends ExGraph {
 
@@ -71,6 +73,10 @@ public class ExGraphRelacaoDocs extends ExGraph {
 				setTooltip(mob2.doc().isProcesso() ? "Subprocesso"
 						: "Documento filho");
 				setDirected(false);
+			} else if (tipo.equals("incorporado")) {
+				setTooltip("Incorporado");
+				setEstilo(ESTILO_TRACEJADO);
+				setDirected(true).setAoContrario(true);
 			}
 		}
 	}
@@ -111,12 +117,20 @@ public class ExGraphRelacaoDocs extends ExGraph {
 		}
 
 		// Juntadas
-		ExMobil pai = mobBase.getExMobilPai();
+		ExMobil pai = mobBase.getExMobilPai(new JuntadaPredicator());
 		if (pai != null) {
 			adicionar(new NodoMob(pai, pessVendo, mobBase.doc()));
 			adicionar(new TransicaoMob(pai, mobBase, "juntada"));
 		}
-
+		
+		// Incorporados
+		pai = mobBase.getExMobilPai(new IncorporacaoPredicator());
+		if (pai != null) {
+			adicionar(new NodoMob(pai, pessVendo, mobBase.doc()));
+			adicionar(new TransicaoMob(pai, mobBase, "incorporado"));
+		}
+		
+		
 		// Incluir os documentos filhos juntados (ou não) enquanto o principal não estiver assinado
 		if (mobBase.doc().isPendenteDeAssinatura()) {
 			for (ExMobil m : mobBase.getJuntados()) {

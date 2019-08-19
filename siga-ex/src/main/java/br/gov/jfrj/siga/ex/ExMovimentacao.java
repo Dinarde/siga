@@ -1087,7 +1087,8 @@ public class ExMovimentacao extends AbstractExMovimentacao implements
 	public boolean isSemEfeito() {
 		if (getExDocumento().isSemEfeito()) {
 			// Não gera marca de "Sem Efeito em Folha de Desentranhamento"
-			if (getExTipoMovimentacao().getId() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_JUNTADA)
+			if (getExTipoMovimentacao().getId() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_JUNTADA
+					|| getExTipoMovimentacao().getId() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_INCORPORACAO)
 				return false;
 			else
 				return true;
@@ -1126,7 +1127,8 @@ public class ExMovimentacao extends AbstractExMovimentacao implements
 	 */
 	public boolean isInserirDocumentoNoDossieDoMobilRef() {
 		return getExTipoMovimentacao().getId() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_JUNTADA
-				|| getExTipoMovimentacao().getId() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_DE_MOVIMENTACAO;
+				|| getExTipoMovimentacao().getId() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_DE_MOVIMENTACAO
+				|| getExTipoMovimentacao().getId() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_INCORPORACAO;
 	}
 
 	/**

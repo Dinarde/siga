@@ -143,9 +143,9 @@ public class ExMobilController extends
 		getP().setOffset(offset);
 		this.setSigla(sigla);
 		this.setPostback(postback);
-
+		
 		final ExMobilBuilder builder = ExMobilBuilder.novaInstancia();
-
+		
 		builder.setPostback(postback).setUltMovTipoResp(ultMovTipoResp)
 				.setUltMovRespSel(ultMovRespSel)
 				.setUltMovLotaRespSel(ultMovLotaRespSel).setOrgaoUsu(orgaoUsu)
@@ -808,6 +808,126 @@ public class ExMobilController extends
 		result.include("lista", docs);
 		List<ExNivelAcesso> listaNivelAcesso = ExDao.getInstance().listarOrdemNivel();
 		result.include("listaNivelAcesso", listaNivelAcesso);
+	}
+	
+	private List<ExTipoFormaDoc> getTiposFormaDocIncorpocao() {
+		List<ExTipoFormaDoc> listTipos = new ArrayList<>();
+		ExTipoFormaDoc tipoForma = dao().consultar(ExTipoFormaDoc.TIPO_FORMA_DOC_PROCESSO_ADMINISTRATIVO, ExTipoFormaDoc.class, false);
+		if (tipoForma == null) 
+			throw new AplicacaoException("Tipos de documento não encontrado");
+		
+		listTipos.add(tipoForma);
+		return listTipos;
+	}
+	
+	@Get("app/expediente/incorporacao/buscar")
+	public void aBuscarDocParaIncorporacao(final String sigla, final String popup, final String primeiraVez, final String propriedade, final Integer postback,
+			final int apenasRefresh, final Long ultMovIdEstadoDoc, final int ordem, final int visualizacao, final Integer ultMovTipoResp,
+			final DpPessoaSelecao ultMovRespSel, final DpLotacaoSelecao ultMovLotaRespSel, final Long orgaoUsu, final Long idTpDoc, final String dtDocString,
+			final String dtDocFinalString, final Long idTipoFormaDoc, final Integer forma, final Long idMod, final String anoEmissaoString,
+			final String numExpediente, final String numExtDoc, final CpOrgaoSelecao cpOrgaoSel, final String numAntigoDoc,
+			final DpPessoaSelecao subscritorSel, String nmSubscritorExt, final Integer tipoCadastrante, final DpPessoaSelecao cadastranteSel,
+			final DpLotacaoSelecao lotaCadastranteSel, final Integer tipoDestinatario, final DpPessoaSelecao destinatarioSel,
+			final DpLotacaoSelecao lotacaoDestinatarioSel, final CpOrgaoSelecao orgaoExternoDestinatarioSel, final String nmDestinatario,
+			final ExClassificacaoSelecao classificacaoSel, final String descrDocument, final String fullText, final Long ultMovEstadoDoc,
+			final Integer offset) {
+		assertAcesso("");
+		
+		getP().setOffset(offset);
+		this.setSigla(sigla);
+		this.setPostback(postback);
+		
+		final ExMobilBuilder builder = ExMobilBuilder.novaInstancia();
+		
+		builder.setPostback(postback).setUltMovTipoResp(ultMovTipoResp)
+				.setUltMovRespSel(ultMovRespSel)
+				.setUltMovLotaRespSel(ultMovLotaRespSel).setOrgaoUsu(orgaoUsu)
+				.setIdTpDoc(idTpDoc).setCpOrgaoSel(cpOrgaoSel)
+				.setSubscritorSel(subscritorSel)
+				.setTipoCadastrante(tipoCadastrante)
+				.setCadastranteSel(cadastranteSel)
+				.setLotaCadastranteSel(lotaCadastranteSel)
+				.setTipoDestinatario(tipoDestinatario)
+				.setDestinatarioSel(destinatarioSel)
+				.setLotacaoDestinatarioSel(lotacaoDestinatarioSel)
+				.setOrgaoExternoDestinatarioSel(orgaoExternoDestinatarioSel)
+				.setClassificacaoSel(classificacaoSel).setOffset(offset);
+
+		builder.processar(getLotaTitular());
+
+		if (primeiraVez == null || !primeiraVez.equals("sim")) {
+			final ExMobilDaoFiltro flt = createDaoFiltro();
+			final long tempoIni = System.currentTimeMillis();
+			setTamanho(dao().consultarQuantidadePorFiltroOtimizado(flt,
+					getTitular(), getLotaTitular()));
+
+//			System.out.println("Consulta dos por filtro: "
+//					+ (System.currentTimeMillis() - tempoIni));
+
+			setItens(dao().consultarPorFiltroOtimizado(flt,
+					builder.getOffset(), getItemPagina(), getTitular(),
+					getLotaTitular()));
+		}
+
+		result.include("primeiraVez", primeiraVez);
+		result.include("popup", true);
+		result.include("apenasRefresh", apenasRefresh);
+		//TODO melhorar isso
+
+		result.include("estados", this.getEstadosIncorporacao());
+
+		result.include("listaOrdem", this.getListaOrdem());
+		result.include("ordem", ordem);
+		result.include("listaVisualizacao", this.getListaVisualizacao());
+		result.include("visualizacao", visualizacao);
+		result.include("listaTipoResp", this.getListaTipoResp());
+		result.include("ultMovTipoResp", builder.getUltMovTipoResp());
+		result.include("ultMovRespSel", builder.getUltMovRespSel());
+		result.include("orgaoUsu", builder.getOrgaoUsu());
+		result.include("orgaosUsu", this.getOrgaosUsu());
+		result.include("tiposDocumento", this.getTiposDocumentoParaConsulta());
+		result.include("idTpDoc", builder.getIdTpDoc());
+		result.include("dtDocString", dtDocString);
+		result.include("dtDocFinalString", dtDocFinalString);
+		
+		//TODO melhorar isso
+		result.include("tiposFormaDoc", this.getTiposFormaDocIncorpocao());
+		
+		result.include("anoEmissaoString", anoEmissaoString);
+		result.include("listaAnos", this.getListaAnos());
+		result.include("numExpediente", numExpediente);
+		result.include("numExtDoc", numExtDoc);
+		result.include("cpOrgaoSel", builder.getCpOrgaoSel());
+		result.include("numAntigoDoc", numAntigoDoc);
+		result.include("nmSubscritorExt", nmSubscritorExt);
+		result.include("subscritorSel", builder.getSubscritorSel());
+		result.include("listaTipoResp", this.getListaTipoResp());
+		result.include("tipoCadastrante", builder.getTipoCadastrante());
+		result.include("cadastranteSel", builder.getCadastranteSel());
+		result.include("lotaCadastranteSel", builder.getLotaCadastranteSel());
+		result.include("orgaoExternoDestinatarioSel",
+				builder.getOrgaoExternoDestinatarioSel());
+		result.include("listaTipoDest", this.getListaTipoDest());
+		result.include("tipoDestinatario", builder.getTipoDestinatario());
+		result.include("destinatarioSel", builder.getDestinatarioSel());
+		result.include("lotacaoDestinatarioSel",
+				builder.getLotacaoDestinatarioSel());
+		result.include("nmDestinatario", nmDestinatario);
+		result.include("descrDocumento", descrDocument);
+		result.include("visualizacao", visualizacao);
+		result.include("itemPagina", this.getItemPagina());
+		result.include("tamanho", this.getTamanho());
+		result.include("itens", this.getItens());
+		result.include("classificacaoSel", builder.getClassificacaoSel());
+		result.include("ultMovLotaRespSel", builder.getUltMovLotaRespSel());
+		result.include("ultMovEstadoDoc", ultMovIdEstadoDoc);
+		result.include("paramoffset", builder.getOffset());
+		result.include("sigla", this.getSigla());
+		result.include("propriedade", propriedade);
+		result.include("currentPageNumber", calculaPaginaAtual(offset));
+		result.include("idTipoFormaDoc", idTipoFormaDoc);
+		result.include("idFormaDoc", forma);
+		result.include("idMod", idMod);		
 	}
 
 }

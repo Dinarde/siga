@@ -3,6 +3,7 @@ package br.gov.jfrj.siga.vraptor;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
@@ -763,7 +764,7 @@ public class ExMovimentacaoController extends ExController {
 
 	@Get("app/expediente/mov/exibir")
 	public void aExibir(final boolean popup, final Long id,
-			final boolean autenticando) {
+			final boolean autenticando, String adUrlNext) {
 		final BuscaDocumentoBuilder builder = BuscaDocumentoBuilder
 				.novaInstancia().setId(id);
 
@@ -775,7 +776,8 @@ public class ExMovimentacaoController extends ExController {
 
 		final ExMovimentacao mov = dao().consultar(id, ExMovimentacao.class,
 				false);
-
+		
+		
 		result.include("id", id);
 		result.include("doc", doc);
 		result.include("mov", mov);
@@ -784,7 +786,8 @@ public class ExMovimentacaoController extends ExController {
 				SigaExProperties.getEnderecoAutenticidadeDocs());
 		result.include("popup", popup);
 		result.include("request", getRequest());
-
+		
+		result.include("adUrlNext", adUrlNext);
 	}
 
 	private ArrayList<Object> criarListaDocumentos(List<String> itens) {
@@ -4468,4 +4471,202 @@ public class ExMovimentacaoController extends ExController {
 
 		result.redirectTo("/app/expediente/doc/exibir?sigla=" + sigla);
 	}
+	
+		
+	//TODO Foi alterado aqui
+	
+	@Get("/app/expediente/mov/incorporar")
+	public void incorporar(final String sigla) {
+		final BuscaDocumentoBuilder builder = BuscaDocumentoBuilder
+				.novaInstancia().setSigla(sigla);
+
+		final ExDocumento doc = buscarDocumento(builder);
+		
+		
+		if (!Ex.getInstance().getComp()
+				.podeIncorporar(getTitular(), getLotaTitular(), builder.getMob())) {
+			throw new AplicacaoException("Não é possível fazer incorporação");
+		}
+		
+		// Preencher automaticamente o mobil pai quando se tratar de documento filho
+		ExMobilSelecao documentoRefSel = new ExMobilIncorporacaoSelecao();
+		if (doc.getPai() != null) {
+			documentoRefSel.buscarPorObjeto(doc.getPai().isExpediente() ? doc.getPai().getPrimeiraVia() : doc.getPai().getUltimoVolume());
+		}
+		
+		result.include("sigla", sigla);
+		result.include("mob", builder.getMob());
+		result.include("doc", doc);
+		result.include("subscritorSel", new DpPessoaSelecao());
+		result.include("documentoRefSel", documentoRefSel);
+	}
+	
+	@Post("/app/expediente/mov/incorporar_gravar")
+	public void aIncorporarGravar(final Integer postback, final String sigla,
+				final String dtMovString, final boolean substituicao,
+				final String idDocumentoPaiExterno,
+				final DpPessoaSelecao subscritorSel,
+				final DpPessoaSelecao titularSel,
+				final ExMobilSelecao documentoRefSel,
+				final String idDocumentoEscolha) {
+			
+			//TODO terminar o processo de gravar a incorporação
+			this.setPostback(postback);
+			
+			final BuscaDocumentoBuilder builder = BuscaDocumentoBuilder
+					.novaInstancia().setSigla(sigla);
+
+			buscarDocumento(builder);
+
+			final ExMovimentacaoBuilder movimentacaoBuilder = ExMovimentacaoBuilder
+					.novaInstancia().setDtMovString(dtMovString)
+					.setSubstituicao(substituicao).setSubscritorSel(subscritorSel)
+					.setTitularSel(titularSel).setDocumentoRefSel(documentoRefSel)
+					.setMob(builder.getMob());
+
+			if (movimentacaoBuilder.getDocumentoRefSel() == null) {
+				movimentacaoBuilder.setDocumentoRefSel(new ExMobilIncorporacaoSelecao());
+			}
+
+			if (movimentacaoBuilder.getSubscritorSel() == null) {
+				movimentacaoBuilder.setSubscritorSel(new DpPessoaSelecao());
+			}
+
+			final ExMovimentacao mov = movimentacaoBuilder.construir(dao());
+			
+			if (mov.getExMobilRef() != null)
+				if (movimentacaoBuilder.getMob().getExDocumento().getIdDoc()
+						.equals(mov.getExMobilRef().getExDocumento().getIdDoc())
+						&& movimentacaoBuilder
+								.getMob()
+								.getExTipoMobil()
+								.getIdTipoMobil()
+								.equals(mov.getExMobilRef().getExTipoMobil()
+										.getIdTipoMobil()))
+					throw new AplicacaoException(
+							"Não é possível incorporar um documento a ele mesmo");
+			
+			if (!Ex.getInstance()
+					.getComp()
+					.podeIncorporar(getTitular(), getLotaTitular(),
+							movimentacaoBuilder.getMob())) {
+				throw new AplicacaoException("Não é possível fazer incorporação");
+			}
+
+			// Quando o documento e eletronico, o responsavel pela incorporacao fica
+			// sendo o proprio cadastrante e a data fica sendo a data atual
+			if (mov.getExDocumento().isEletronico()) {
+				mov.setDtMov(new Date());
+				mov.setSubscritor(getCadastrante());
+				mov.setTitular(getTitular());
+			}
+
+			final Long idMov = Ex.getInstance()
+					.getBL()
+					.incorporarDocumento(getCadastrante(), getTitular(),
+							getLotaTitular(), idDocumentoPaiExterno,
+							movimentacaoBuilder.getMob(), mov.getExMobilRef(),
+							mov.getDtMov(), mov.getSubscritor(), mov.getTitular(),
+							idDocumentoEscolha);
+		/*
+		String urlRedirect = MessageFormat.format("&adUrlNext=/sigaex/app/expediente/doc/exibir?sigla={0}", sigla);
+		String url = MessageFormat.format("/app/expediente/mov/exibir?id={0}", idMov);
+		
+		result.redirectTo(url+urlRedirect);
+		*/
+		redirecionarParaAssinarMovimentacao(sigla,idMov);
+	}
+	
+	
+	@Get("/app/expediente/mov/desincorporar")
+	public void desincorporar(final String sigla) {
+		final BuscaDocumentoBuilder builder = BuscaDocumentoBuilder
+				.novaInstancia().setSigla(sigla);
+
+		final ExDocumento doc = buscarDocumento(builder);
+		
+		
+		if (!Ex.getInstance().getComp()
+				.podeDesincorporar(getTitular(), getLotaTitular(), builder.getMob())) {
+			throw new AplicacaoException("Não é possível fazer desincorporação");
+		}
+		
+		// Preencher automaticamente o mobil pai quando se tratar de documento filho
+		ExMobilSelecao documentoRefSel = new ExMobilIncorporacaoSelecao();
+		if (doc.getPai() != null) {
+			documentoRefSel.buscarPorObjeto(doc.getPai().isExpediente() ? doc.getPai().getPrimeiraVia() : doc.getPai().getUltimoVolume());
+		}
+
+		result.include("sigla", sigla);
+		result.include("mob", builder.getMob());
+		result.include("doc", doc);
+		result.include("subscritorSel", new DpPessoaSelecao());
+		result.include("documentoRefSel", documentoRefSel);
+	}
+	
+	@Post("/app/expediente/mov/desincorporar_gravar")
+	public void aDesincorporarGravar(Integer postback, String sigla,
+			String descrMov, DpPessoaSelecao subscritorSel,
+			DpPessoaSelecao titularSel, boolean substituicao) {
+		
+		//TODO terminar processo de desincorporação
+		this.setPostback(postback);
+
+		final BuscaDocumentoBuilder builder = BuscaDocumentoBuilder
+				.novaInstancia().setSigla(sigla);
+		buscarDocumento(builder, true);
+
+		final ExMovimentacaoBuilder movimentacaoBuilder = ExMovimentacaoBuilder
+				.novaInstancia();
+		
+		final ExMobil mob = builder.getMob();
+		
+		movimentacaoBuilder.setSubscritorSel(subscritorSel)
+				.setTitularSel(titularSel)
+				.setSubstituicao(substituicao).setMob(mob);
+
+		final ExMovimentacao mov = movimentacaoBuilder.construir(dao());
+		mov.setDtMov(new Date());
+		
+
+		if (!Ex.getInstance().getComp()
+				.podeDesincorporar(getTitular(), getLotaTitular(), mob))
+			throw new AplicacaoException("Não é possível desincorporar");
+
+		
+		final Long idMov = Ex.getInstance()
+				.getBL()
+				.desincorporarDocumento(getCadastrante(), getLotaTitular(),
+							mob, mov.getDtMov(), mov.getSubscritor(),
+							mov.getTitular(), descrMov);
+		/*
+		result.include("mob", mob);
+		result.include("request", getRequest());
+		result.include("sigla", sigla);
+		result.include("substituicao", Boolean.FALSE);
+		
+		ExDocumentoController.redirecionarParaExibir(result, sigla);
+		*/
+		
+		redirecionarParaAssinarMovimentacao(sigla,idMov);
+	}
+	
+	/**
+	 * 	Metodo utilizado para poder fazer a assinatura da movimentacao
+	 * logo depois da incorporacao
+	 * 
+	 * @param sigla
+	 * @param idMovimentacao
+	 */
+	private void redirecionarParaAssinarMovimentacao(String sigla, Long idMovimentacao) {
+		try {
+			String urlRedirect = URLEncoder.encode(MessageFormat.format("/sigaex/app/expediente/doc/exibir?sigla={0}", sigla), "UTF-8");
+			String url = MessageFormat.format("/app/expediente/mov/exibir?id={0}", idMovimentacao);
+		
+			result.redirectTo(url+"&adUrlNext="+urlRedirect);
+		} catch(Exception e) {
+			throw new AplicacaoException("Erro ao realizar operacao", 0, e);
+		}
+	}
+
 }

@@ -562,6 +562,23 @@ public class ExMobilVO extends ExVO {
 						.podeCancelarCiencia(titular, lotaTitular, mob), null,
 				null, null, null, null);
 
+		
+		
+		//TODO foi alterado aqui
+		//TODO colocar icones melores !
+		addAcao("page_white_go",
+				"Incorporar",
+				"/app/expediente/mov",
+				"incorporar",
+				Ex.getInstance().getComp()
+						.podeIncorporar(titular, lotaTitular, mob));
+		
+		addAcao("page_white_error",
+				"Desincorporar",
+				"/app/expediente/mov",
+				"desincorporar",
+				Ex.getInstance().getComp()
+						.podeDesincorporar(titular, lotaTitular, mob));
 	}
 
 	public String getMarcadoresEmHtml(DpPessoa pess, DpLotacao lota) {
