@@ -191,6 +191,10 @@ public class ExTipoMovimentacao extends AbstractExTipoMovimentacao implements Se
 	final static public long TIPO_MOVIMENTACAO_CIENCIA = 66;
 	
 	final static public long TIPO_MOVIMENTACAO_AUTUAR = 67;
+	
+	final static public long TIPO_MOVIMENTACAO_INCORPORACAO = 68;
+	
+	final static public long TIPO_MOVIMENTACAO_CANCELAMENTO_INCORPORACAO = 69;
 
 	public static boolean hasDespacho(long id) {
 		return id == ExTipoMovimentacao.TIPO_MOVIMENTACAO_DESPACHO
@@ -240,8 +244,6 @@ public class ExTipoMovimentacao extends AbstractExTipoMovimentacao implements Se
 
 	/* Add customized code below */
 	
-	final static public long TIPO_MOVIMENTACAO_INCORPORACAO = 66;
-	
-	final static public long TIPO_MOVIMENTACAO_CANCELAMENTO_INCORPORACAO = 67;
+
 
 }
