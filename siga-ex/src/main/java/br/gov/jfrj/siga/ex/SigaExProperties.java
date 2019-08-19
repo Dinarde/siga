@@ -289,11 +289,11 @@ public class SigaExProperties extends ModeloPropriedade {
 
 
 	public static String getHostProxy() {
-		return getString("siga.ex.http.proxyHost");
+		return getString("http.proxyHost");
 	}
 	
 	public static String getPortProxy() {
-		return getString("siga.ex.http.proxyPort");
+		return getString("http.proxyPort");
 	}
 
 }
