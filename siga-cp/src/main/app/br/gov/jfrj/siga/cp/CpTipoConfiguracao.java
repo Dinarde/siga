@@ -143,6 +143,9 @@ public class CpTipoConfiguracao extends AbstractCpTipoConfiguracao {
 
 	public static final long TIPO_CONFIG_CRIAR_COMO_NOVO = 42;
 
+	
+	public static final long TIPO_CONFIG_UTILIZAR_MOBIL_SELECAO_JUNTADA_CUSTOMIZADO = 43;
+	
 	// SIGA-WF
 
 	public static final long TIPO_CONFIG_INSTANCIAR_PROCEDIMENTO = 100;

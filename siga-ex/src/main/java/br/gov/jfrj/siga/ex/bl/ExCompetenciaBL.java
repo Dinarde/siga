@@ -28,6 +28,8 @@ import br.gov.jfrj.siga.base.AplicacaoException;
 import br.gov.jfrj.siga.base.SigaBaseProperties;
 import br.gov.jfrj.siga.base.SigaMessages;
 import br.gov.jfrj.siga.cp.CpComplexo;
+import br.gov.jfrj.siga.cp.CpConfiguracao;
+import br.gov.jfrj.siga.cp.CpServico;
 import br.gov.jfrj.siga.cp.CpSituacaoConfiguracao;
 import br.gov.jfrj.siga.cp.CpTipoConfiguracao;
 import br.gov.jfrj.siga.cp.bl.CpCompetenciaBL;
@@ -2638,7 +2640,7 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 		
 		if(mob.isIncorporado())
 			return false;
-		
+
 		return (mob.getExDocumento().isFinalizado())								
 				&& !mob.isEmTransito()
 				&& podeMovimentar(titular, lotaTitular, mob)
@@ -4605,6 +4607,10 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 		
 		if(mob.isSobrestado())
 			return false;
+		
+		
+		if(!podePorConfiguracao(titular, lotaTitular, CpTipoConfiguracao.TIPO_CONFIG_AUTUAVEL)) 
+			return false;
 			
 		final boolean podeMovimentar = podeMovimentar(titular, lotaTitular, mob);
 
@@ -4805,5 +4811,5 @@ public class ExCompetenciaBL extends CpCompetenciaBL {
 				ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_INCORPORACAO,
 				CpTipoConfiguracao.TIPO_CONFIG_MOVIMENTAR);
 	}
-
+	
 }

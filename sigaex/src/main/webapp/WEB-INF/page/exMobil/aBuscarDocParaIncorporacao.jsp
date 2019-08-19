@@ -383,6 +383,10 @@ function limpaCampos()
 
 </script>
 
+<c:if test="${(not empty primeiraVez) and (primeiraVez eq 'sim')}">
+	<c:set var="onLoad" value="document.querySelector('input[type=submit]').click();" scope="request"/>
+</c:if>
+
 <siga:pagina titulo="Lista de Expedientes" popup="${popup}">
 	<div class="gt-bd clearfix">
 		<div class="gt-content clearfix">

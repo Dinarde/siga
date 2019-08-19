@@ -21,10 +21,14 @@ public class ExConfigUnirestProxy {
 			String sPort = SigaExProperties.getPortProxy();
 			
 			if (host != null && sPort != null && sPort.matches("([0-9]){1,}")) {
-				int port = Integer.parseInt(sPort);
-			
-				HttpHost proxy = new HttpHost(host, port);
-				Unirest.setProxy(proxy);
+				/*	Se o proxy for configurado no Unirest ele será utilizado em todas as 
+				 * requisições (até nas que não podem)
+				 
+					HttpHost proxy = new HttpHost(host, Integer.parseInt(sPort));
+					Unirest.setProxy(proxy);
+				*/
+				GoogleRecaptcha.setProxyHost(host);
+				GoogleRecaptcha.setProxyPort(Integer.parseInt(sPort));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

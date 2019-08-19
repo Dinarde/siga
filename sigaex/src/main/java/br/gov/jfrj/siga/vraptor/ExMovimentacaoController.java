@@ -963,7 +963,7 @@ public class ExMovimentacaoController extends ExController {
 		}
 		
 		// Preencher automaticamente o mobil pai quando se tratar de documento filho
-		ExMobilSelecao documentoRefSel = new ExMobilSelecao();
+		ExMobilSelecao documentoRefSel = criarExMobilSelecao();
 		if (doc.getPai() != null) {
 			documentoRefSel.buscarPorObjeto(doc.getPai().isExpediente() ? doc.getPai().getPrimeiraVia() : doc.getPai().getUltimoVolume());
 		}
@@ -997,7 +997,7 @@ public class ExMovimentacaoController extends ExController {
 				.setMob(builder.getMob());
 
 		if (movimentacaoBuilder.getDocumentoRefSel() == null) {
-			movimentacaoBuilder.setDocumentoRefSel(new ExMobilSelecao());
+			movimentacaoBuilder.setDocumentoRefSel(criarExMobilSelecao());
 		}
 
 		if (movimentacaoBuilder.getSubscritorSel() == null) {
@@ -4644,5 +4644,13 @@ public class ExMovimentacaoController extends ExController {
 			throw new AplicacaoException("Erro ao realizar operacao", 0, e);
 		}
 	}
-
+	
+	private ExMobilSelecao criarExMobilSelecao() {
+		if (Ex.getInstance().getConf().podePorConfiguracao(getTitular(), getLotaTitular(), CpTipoConfiguracao.TIPO_CONFIG_UTILIZAR_MOBIL_SELECAO_JUNTADA_CUSTOMIZADO)) {
+			result.include("paramList", "primeiraVez=sim");
+			return new ExMobilIncorporacaoSelecao();
+		}
+		return new ExMobilSelecao();
+	}
+	
 }
