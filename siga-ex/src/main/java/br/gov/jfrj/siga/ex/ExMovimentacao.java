@@ -897,12 +897,18 @@ public class ExMovimentacao extends AbstractExMovimentacao implements
 	}
 
 	public String getSiglaAssinatura() {
-		return getExDocumento().getIdDoc()
+		String siglaAssinatura = getExDocumento().getIdDoc()
 				+ "."
 				+ getIdMov()
 				+ "-"
 				+ Math.abs((getExDocumento().getDescrCurta() + getIdMov())
 						.hashCode() % 10000);
+		
+		if (getGuidMov() != null) {
+			siglaAssinatura += getGuidMov();
+		}
+		
+		return siglaAssinatura;
 	}
 
 	public String getSiglaAssinaturaExterna() {
@@ -1176,7 +1182,12 @@ public class ExMovimentacao extends AbstractExMovimentacao implements
 
 	@Override
 	public boolean isCodigoParaAssinaturaExterna(String num) {
-
+		
+		if (num.length() > 36) {
+			// "6a2f41a3-c54c-fce8-32d2-0324e1c32e22" length = 36
+			num = num.substring(0, num.length() - 36);
+		}
+		
 		int hash = Integer.parseInt(num.substring(num.indexOf("-") + 1));
 
 		for (ExMovimentacao mov : getExDocumento().getExMovimentacaoSet())

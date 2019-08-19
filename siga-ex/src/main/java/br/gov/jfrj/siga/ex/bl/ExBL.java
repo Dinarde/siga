@@ -49,6 +49,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -3550,6 +3551,9 @@ public class ExBL extends CpBL {
 			// Nato: para obter o numero do TMP na primeira gravação
 			boolean primeiraGravacao = false;
 			if (doc.getIdDoc() == null) {
+				
+				doc.setGuidDoc(UUID.randomUUID().toString());
+				
 				doc = ExDao.getInstance().gravar(doc);
 				primeiraGravacao = true;
 			}
@@ -6099,6 +6103,37 @@ public class ExBL extends CpBL {
 		Pattern p = Pattern
 				.compile("([0-9]{1,10})(.[0-9]{1,10})?-([0-9]{1,4})");
 		Matcher m = p.matcher(num);
+		
+		if (num.length() > 36) {
+			
+			if (!m.find())
+				throw new AplicacaoException("Número inválido");
+				
+			Long idDoc = Long.parseLong(m.group(1));
+			
+			ExDocumento doc = ExDao.getInstance().consultar(idDoc,
+					ExDocumento.class, false);
+
+			if (doc == null)
+				throw new AplicacaoException("Documento não encontrado");
+			
+			
+			String guid = num;
+			if (guid.endsWith(doc.getGuidDoc())) {
+				return doc;
+			} else {
+				ExMovimentacao movimentacao = null;
+				for (ExMovimentacao mov : doc.getExMovimentacaoSet()) {
+					if (mov.getGuidMov() != null && guid.endsWith(mov.getGuidMov()))
+						movimentacao = mov;
+				}
+				
+				if (movimentacao == null)
+					throw new AplicacaoException("Número inválido");
+
+				return movimentacao;
+			}
+		}
 
 		if (!m.matches())
 			throw new AplicacaoException("Número inválido");
