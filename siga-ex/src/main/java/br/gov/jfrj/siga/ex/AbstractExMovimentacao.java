@@ -333,8 +333,8 @@ public abstract class AbstractExMovimentacao extends ExArquivo implements Serial
 	@Column(name = "hash_audit", length = 1024)
 	private String auditHash;
 	
-	@Column(name = "GUID_MOV", length = 36)
-	private String guidMov;
+	@Column(name = "senha_mov", length = 10)
+	private String senhaMov;
 
 	public void setNumPaginasOri(Integer numPaginasOri) {
 		this.numPaginasOri = numPaginasOri;
@@ -683,12 +683,12 @@ public abstract class AbstractExMovimentacao extends ExArquivo implements Serial
 		this.auditHash = auditHash;
 	}
 	
-	public String getGuidMov() {
-		return guidMov;
+	public String getSenhaMov() {
+		return senhaMov;
 	}
 	
-	public void setGuidMov(String guidMov) {
-		this.guidMov = guidMov;
+	public void setSenhaMov(String senhaMov) {
+		this.senhaMov = senhaMov;
 	}
 	
 }

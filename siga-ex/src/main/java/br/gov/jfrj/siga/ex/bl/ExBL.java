@@ -45,14 +45,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.persistence.EntityNotFoundException;
 
 import org.apache.axis.encoding.Base64;
 import org.apache.commons.beanutils.PropertyUtils;
@@ -69,22 +71,6 @@ import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
 import org.jdom.output.XMLOutputter;
-
-import com.crivano.swaggerservlet.ISwaggerRequest;
-import com.crivano.swaggerservlet.ISwaggerResponse;
-import com.crivano.swaggerservlet.SwaggerAsyncResponse;
-import com.crivano.swaggerservlet.SwaggerCall;
-import com.google.common.base.Strings;
-import com.google.gson.FieldNamingPolicy;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
 
 import br.gov.jfrj.itextpdf.ConversorHtml;
 import br.gov.jfrj.itextpdf.Documento;
@@ -153,7 +139,6 @@ import br.gov.jfrj.siga.ex.util.ProcessadorModelo;
 import br.gov.jfrj.siga.ex.util.ProcessadorModeloFreemarker;
 import br.gov.jfrj.siga.ex.util.PublicacaoDJEBL;
 import br.gov.jfrj.siga.ex.util.BIE.ManipuladorEntrevista;
-import br.gov.jfrj.siga.ex.util.predicate.IncorporacaoPredicator;
 import br.gov.jfrj.siga.hibernate.ExDao;
 import br.gov.jfrj.siga.model.ContextoPersistencia;
 import br.gov.jfrj.siga.model.Objeto;
@@ -167,6 +152,22 @@ import br.gov.jfrj.siga.sinc.lib.Sincronizador;
 import br.gov.jfrj.siga.sinc.lib.Sincronizavel;
 import br.gov.jfrj.siga.sinc.lib.SincronizavelSuporte;
 import br.gov.jfrj.siga.wf.service.WfService;
+
+import com.crivano.swaggerservlet.ISwaggerRequest;
+import com.crivano.swaggerservlet.ISwaggerResponse;
+import com.crivano.swaggerservlet.SwaggerAsyncResponse;
+import com.crivano.swaggerservlet.SwaggerCall;
+import com.google.common.base.Strings;
+import com.google.gson.FieldNamingPolicy;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 
 public class ExBL extends CpBL {
 	private static final String MODELO_FOLHA_DE_ROSTO_EXPEDIENTE_INTERNO = "Folha de Rosto - Expediente Interno";
@@ -3219,7 +3220,11 @@ public class ExBL extends CpBL {
 			doc.setNumExpediente(obterNumeroGerado(doc));
 			
 			processar(doc, false, false);
-
+			
+			if (SigaExProperties.isAdicionarSenhaDoc()) {
+				doc.setSenhaDoc(ExBL.gerarSenhaDoc());
+			}
+			
 			doc.setNumPaginas(doc.getContarNumeroDePaginas());
 			dao().gravar(doc);
 
@@ -3551,9 +3556,6 @@ public class ExBL extends CpBL {
 			// Nato: para obter o numero do TMP na primeira gravação
 			boolean primeiraGravacao = false;
 			if (doc.getIdDoc() == null) {
-				
-				doc.setGuidDoc(UUID.randomUUID().toString());
-				
 				doc = ExDao.getInstance().gravar(doc);
 				primeiraGravacao = true;
 			}
@@ -3935,6 +3937,18 @@ public class ExBL extends CpBL {
 		// ultMov.setDtFimMov(new Date());
 		// ExDao.getInstance().gravar(ultMov);
 		// }
+		if (SigaExProperties.isAdicionarSenhaDoc()) {
+			if (mov.getIdTpMov() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_ENCERRAMENTO_DE_VOLUME
+				|| mov.getIdTpMov() ==  ExTipoMovimentacao.TIPO_MOVIMENTACAO_INCORPORACAO
+				|| mov.getIdTpMov() ==  ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_INCORPORACAO
+				|| (mov.getIdTpMov() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_JUNTADA || (mov
+						.getIdTpMov() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_DE_MOVIMENTACAO)
+						&& ExTipoMovimentacao.hasDocumento(mov.getExMovimentacaoRef().getIdTpMov())) ) {
+				
+				mov.setSenhaMov(ExBL.gerarSenhaDoc());
+			}
+		}
+		
 		if (!mov.getExTipoMovimentacao().getIdTpMov()
 				.equals(ExTipoMovimentacao.TIPO_MOVIMENTACAO_ANEXACAO_DE_ARQUIVO_AUXILIAR))
 			mov.setNumPaginas(mov.getContarNumeroDePaginas());
@@ -6100,40 +6114,40 @@ public class ExBL extends CpBL {
 	}
 
 	public ExArquivo buscarPorNumeroAssinatura(String num) throws Exception {
+
+		final String regexGuid = "(?<id>[0-9]{1,10})-(?<mov>M{0,1})(?<guid>[0-9a-zA-Z]{10})$";
+		Pattern patternGuid = Pattern.compile(regexGuid);
+		Matcher matcherGuid = patternGuid.matcher(num);
+		
+		if (matcherGuid.matches()) {
+			
+			Long id = Long.parseLong(matcherGuid.group("id"));
+			try {
+				if (matcherGuid.group("mov") == null || matcherGuid.group("mov").equals("")) {
+					ExDocumento doc = ExDao.getInstance().consultar(id,
+							ExDocumento.class, false);
+					
+					if (doc == null || !matcherGuid.group("guid").equals(doc.getSenhaDoc()))
+						throw new AplicacaoException("Documento não encontrado");
+					
+					return doc;
+				} else {
+					ExMovimentacao mov = ExDao.getInstance().consultar(id,
+							ExMovimentacao.class, false);
+					
+					if (mov == null || !matcherGuid.group("guid").equals(mov.getSenhaMov()))
+						throw new AplicacaoException("Documento não encontrado");
+					
+					return mov;
+				}
+			} catch (EntityNotFoundException e) {
+				throw new AplicacaoException("Documento não encontrado");
+			}
+		}
+		
 		Pattern p = Pattern
 				.compile("([0-9]{1,10})(.[0-9]{1,10})?-([0-9]{1,4})");
 		Matcher m = p.matcher(num);
-		
-		if (num.length() > 36) {
-			
-			if (!m.find())
-				throw new AplicacaoException("Número inválido");
-				
-			Long idDoc = Long.parseLong(m.group(1));
-			
-			ExDocumento doc = ExDao.getInstance().consultar(idDoc,
-					ExDocumento.class, false);
-
-			if (doc == null)
-				throw new AplicacaoException("Documento não encontrado");
-			
-			
-			String guid = num;
-			if (guid.endsWith(doc.getGuidDoc())) {
-				return doc;
-			} else {
-				ExMovimentacao movimentacao = null;
-				for (ExMovimentacao mov : doc.getExMovimentacaoSet()) {
-					if (mov.getGuidMov() != null && guid.endsWith(mov.getGuidMov()))
-						movimentacao = mov;
-				}
-				
-				if (movimentacao == null)
-					throw new AplicacaoException("Número inválido");
-
-				return movimentacao;
-			}
-		}
 
 		if (!m.matches())
 			throw new AplicacaoException("Número inválido");
@@ -6163,6 +6177,10 @@ public class ExBL extends CpBL {
 		ExMovimentacao move = null;
 
 		if (Math.abs(doc.getDescrCurta().hashCode() % 10000) == hash) {
+			
+			if (doc.getSenhaDoc() != null)
+				throw new AplicacaoException("Documento não encontrado");
+			
 			return doc;
 		} else {
 			for (ExMovimentacao mov : doc.getExMovimentacaoSet())
@@ -6170,9 +6188,9 @@ public class ExBL extends CpBL {
 						|| Math.abs((doc.getDescrCurta() + mov.getIdMov() + "AssinaturaExterna")
 								.hashCode() % 10000) == hash)
 					move = mov;
-			if (move == null)
+			if (move == null || move.getSenhaMov() != null)
 				throw new AplicacaoException("Número inválido");
-
+			
 			return move;
 		}
 
@@ -7528,5 +7546,9 @@ public class ExBL extends CpBL {
 		}
 		
 	}
-
+	
+	public static String gerarSenhaDoc() {
+		return GeraMessageDigest.geraSenha(10);
+	}
+	
 }

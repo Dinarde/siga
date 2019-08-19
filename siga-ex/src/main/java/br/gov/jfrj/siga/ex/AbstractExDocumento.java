@@ -398,8 +398,8 @@ public abstract class AbstractExDocumento extends ExArquivo implements
 	@JoinColumn(name = "ID_MOB_AUTUADO")
 	private ExMobil exMobilAutuado;
 	
-	@Column(name = "GUID_DOC", length = 36)
-	private String guidDoc;
+	@Column(name = "SENHA_DOC", length = 10)
+	private String senhaDoc;
 	
 	/**
 	 * Simple constructor of AbstractExDocumento instances.
@@ -1070,12 +1070,12 @@ public abstract class AbstractExDocumento extends ExArquivo implements
 		this.dtAltDoc = dtAltDoc;
 	}
 	
-	public String getGuidDoc() {
-		return guidDoc;
+	public String getSenhaDoc() {
+		return senhaDoc;
 	}
 	
-	public void setGuidDoc(String guidDoc) {
-		this.guidDoc = guidDoc;
+	public void setSenhaDoc(String senhaDoc) {
+		this.senhaDoc = senhaDoc;
 	}
 	
 }

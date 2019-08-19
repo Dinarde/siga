@@ -54,7 +54,7 @@ public class GeraMessageDigest {
 		return GeraMessageDigest.byteParaString(md.digest());
 	}
 
-	public static String geraSenha() {
+	public static String geraSenha(int tanhoSenha) {
 		final StringBuilder caracteres = new StringBuilder();
 
 		for (int i = 0; i < 26; i++) {
@@ -68,10 +68,14 @@ public class GeraMessageDigest {
 		// Exclusão das letras o e O na geração de senha
 		caracteres.deleteCharAt(caracteres.indexOf("o"));
 		caracteres.deleteCharAt(caracteres.indexOf("O"));
+		
+		// Exclusão das letras l e I na geração de senha
+		caracteres.deleteCharAt(caracteres.indexOf("l"));
+		caracteres.deleteCharAt(caracteres.indexOf("I"));
 
 		// exclusão do número zero na geração de senha
 		for (int i = 0; i < 10 - 1; i++) {
-			caracteres.append('1' + i);
+			caracteres.append((char)('1' + i));
 		}
 
 		boolean contemMinusculas;
@@ -86,7 +90,7 @@ public class GeraMessageDigest {
 			contemMinusculas = false;
 			contemMaiusculas = false;
 			contemNumeros = false;
-			for (int i = 0; i < 8; i++) {
+			for (int i = 0; i < tanhoSenha; i++) {
 				novaSenha.append(caracteres.charAt(random.nextInt(caracteres
 						.length())));
 			}
@@ -109,4 +113,9 @@ public class GeraMessageDigest {
 
 		return novaSenha.toString();
 	}
+	
+	public static String geraSenha() {
+		return geraSenha(8);
+	}
+	
 }

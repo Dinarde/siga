@@ -1689,8 +1689,8 @@ public class ExDocumento extends AbstractExDocumento implements Serializable,
 	 * sobre o id e a descrição.
 	 */
 	public String getSiglaAssinatura() {
-		if (getGuidDoc() != null) {
-			return getIdDoc() + "-" + getGuidDoc();
+		if (getSenhaDoc() != null) {
+			return getIdDoc() + "-" + getSenhaDoc();
 		}
 		
 		return getIdDoc() + "-" + Math.abs(getDescrCurta().hashCode() % 10000);

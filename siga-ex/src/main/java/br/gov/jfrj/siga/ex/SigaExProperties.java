@@ -296,4 +296,21 @@ public class SigaExProperties extends ModeloPropriedade {
 		return getString("http.proxyPort");
 	}
 
+	public static boolean isAdicionarSenhaDoc() {
+		String s = getString("siga.ex.autenticacao.habilita.senha");
+		
+		if (s == null)
+			return false;
+		
+		return "true".equals(s);
+	}
+	
+	public static String getHostProxy() {
+		return getString("siga.ex.http.proxyHost");
+	}
+	
+	public static String getPortProxy() {
+		return getString("siga.ex.http.proxyPort");
+	}	
+	
 }

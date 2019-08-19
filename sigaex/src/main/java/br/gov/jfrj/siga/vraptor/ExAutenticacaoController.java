@@ -127,7 +127,7 @@ public class ExAutenticacaoController extends ExController {
 				String retHostname = body.getObject().getString("hostname");
 				success = retHostname.equals(hostname);
 			}
-		}*/
+		}
 		if (!success) {
 			setDefaultResults();
 			return;
