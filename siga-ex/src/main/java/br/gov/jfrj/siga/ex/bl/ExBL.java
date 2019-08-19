@@ -7311,7 +7311,12 @@ public class ExBL extends CpBL {
 	}
 	
 	/**
+	 * <ul>
+	 * 	<li>Metodo utilizado na incorporação de um móbil a outro</li>
 	 * 
+	 * 	<li>Ele segue as mesmas regras do {@link ExCompetenciaBL#podeIncorporar(DpPessoa, DpLotacao, ExMobil)}</li>
+	 * </ul>
+	 * @return O identificador da movimentação criada
 	 */
 	public Long incorporarDocumento(final DpPessoa cadastrante,
 			final DpPessoa docTitular, final DpLotacao lotaCadastrante,
@@ -7397,12 +7402,9 @@ public class ExBL extends CpBL {
 
 			mov.setDescrMov("Incorporado ao documento "
 					+ mov.getExMobilRef().getCodigo().toString());
-
-			//Talvez nao muito sentido fazer esta validacao
-			//ja que a incorporacao so é feita em processos 
+ 
 			if (mobPai.getMobilPrincipal().isNumeracaoUnicaAutomatica()) {
 				mov.setNumPaginasOri(1);
-				/*H.Souza: TODO melhor rever o impacto de deixar isso fixo*/
 				criarCertidaoDeDesentranhamento(mov, mob, 1, 1, mov.getDescrMov());
 			}
 			
@@ -7430,13 +7432,20 @@ public class ExBL extends CpBL {
 
 	}
 	
+	/**
+	 * <ul>
+	 * 	<li>Metodo utilizado na desincorporação de processo</li>
+	 * 
+	 * 	<li>O principal criterio e que o mobil do processo pai não pode estar arquivado</li>
+	 * </ul>
+	 * @return O identificador da movimentação criada
+	 */
 	public Long desincorporarDocumento(final DpPessoa cadastrante,
 			final DpLotacao lotaCadastrante, final ExMobil mob,
 			final Date dtMov, final DpPessoa subscritor, final DpPessoa titular, String textoMotivo)
 			throws AplicacaoException {
 		
 		try {
-
 			iniciarAlteracao();
 
 			final ExMovimentacao mov = criarNovaMovimentacao(

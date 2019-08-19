@@ -857,12 +857,8 @@ public class ExMobilController extends
 
 		if (primeiraVez == null || !primeiraVez.equals("sim")) {
 			final ExMobilDaoFiltro flt = createDaoFiltro();
-			final long tempoIni = System.currentTimeMillis();
 			setTamanho(dao().consultarQuantidadePorFiltroOtimizado(flt,
 					getTitular(), getLotaTitular()));
-
-//			System.out.println("Consulta dos por filtro: "
-//					+ (System.currentTimeMillis() - tempoIni));
 
 			setItens(dao().consultarPorFiltroOtimizado(flt,
 					builder.getOffset(), getItemPagina(), getTitular(),
@@ -872,7 +868,6 @@ public class ExMobilController extends
 		result.include("primeiraVez", primeiraVez);
 		result.include("popup", true);
 		result.include("apenasRefresh", apenasRefresh);
-		//TODO melhorar isso
 
 		result.include("estados", this.getEstadosIncorporacao());
 
@@ -890,7 +885,6 @@ public class ExMobilController extends
 		result.include("dtDocString", dtDocString);
 		result.include("dtDocFinalString", dtDocFinalString);
 		
-		//TODO melhorar isso
 		result.include("tiposFormaDoc", this.getTiposFormaDocIncorpocao());
 		
 		result.include("anoEmissaoString", anoEmissaoString);

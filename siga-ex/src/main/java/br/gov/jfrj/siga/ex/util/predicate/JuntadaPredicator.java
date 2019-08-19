@@ -2,7 +2,7 @@ package br.gov.jfrj.siga.ex.util.predicate;
 
 import br.gov.jfrj.siga.ex.ExTipoMovimentacao;
 
-public class JuntadaPredicator extends AbstractTpMovimentacaoPredicator {
+public class JuntadaPredicator implements TpMovimentacaoPredicator {
 	
 	@Override
 	public boolean accept(long value) {

@@ -8,14 +8,14 @@ public interface TpMovimentacaoPredicator {
 	/**
 	 * 
 	 * @param value
-	 * @return retorna true se o valor da movimentacao e aceito
+	 * @return true se o valor da movimentacao e aceito
 	 */
 	public boolean accept(long value);
 	
 	/**
 	 * 
 	 * @param value
-	 * @return retorna true se o valor da movimentacao nao e aceito
+	 * @return true se o valor da movimentacao nao e aceito
 	 */
 	public boolean notAccept(long value);
 	

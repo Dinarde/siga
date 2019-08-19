@@ -4510,7 +4510,6 @@ public class ExMovimentacaoController extends ExController {
 				final ExMobilSelecao documentoRefSel,
 				final String idDocumentoEscolha) {
 			
-			//TODO terminar o processo de gravar a incorporação
 			this.setPostback(postback);
 			
 			final BuscaDocumentoBuilder builder = BuscaDocumentoBuilder
@@ -4568,12 +4567,6 @@ public class ExMovimentacaoController extends ExController {
 							movimentacaoBuilder.getMob(), mov.getExMobilRef(),
 							mov.getDtMov(), mov.getSubscritor(), mov.getTitular(),
 							idDocumentoEscolha);
-		/*
-		String urlRedirect = MessageFormat.format("&adUrlNext=/sigaex/app/expediente/doc/exibir?sigla={0}", sigla);
-		String url = MessageFormat.format("/app/expediente/mov/exibir?id={0}", idMov);
-		
-		result.redirectTo(url+urlRedirect);
-		*/
 		redirecionarParaAssinarMovimentacao(sigla,idMov);
 	}
 	
@@ -4608,8 +4601,7 @@ public class ExMovimentacaoController extends ExController {
 	public void aDesincorporarGravar(Integer postback, String sigla,
 			String descrMov, DpPessoaSelecao subscritorSel,
 			DpPessoaSelecao titularSel, boolean substituicao) {
-		
-		//TODO terminar processo de desincorporação
+
 		this.setPostback(postback);
 
 		final BuscaDocumentoBuilder builder = BuscaDocumentoBuilder
@@ -4639,22 +4631,14 @@ public class ExMovimentacaoController extends ExController {
 				.desincorporarDocumento(getCadastrante(), getLotaTitular(),
 							mob, mov.getDtMov(), mov.getSubscritor(),
 							mov.getTitular(), descrMov);
-		/*
-		result.include("mob", mob);
-		result.include("request", getRequest());
-		result.include("sigla", sigla);
-		result.include("substituicao", Boolean.FALSE);
-		
-		ExDocumentoController.redirecionarParaExibir(result, sigla);
-		*/
 		
 		redirecionarParaAssinarMovimentacao(sigla,idMov);
 	}
 	
 	/**
-	 * 	Metodo utilizado para poder fazer a assinatura da movimentacao
-	 * logo depois da incorporacao
-	 * 
+	 * <ul>
+	 * 	<li>Metodo utilizado para poder fazer a assinatura da movimentacao logo depois da operacao incorporacao ter sido feita</li>
+	 * </ul>
 	 * @param sigla
 	 * @param idMovimentacao
 	 */

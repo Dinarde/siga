@@ -563,9 +563,7 @@ public class ExMobilVO extends ExVO {
 				null, null, null, null);
 
 		
-		
-		//TODO foi alterado aqui
-		//TODO colocar icones melores !
+
 		addAcao("page_white_go",
 				"Incorporar",
 				"/app/expediente/mov",
