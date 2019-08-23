@@ -36,8 +36,8 @@ import javax.persistence.MappedSuperclass;
 import br.gov.jfrj.siga.model.Objeto;
 
 /**
- * Classe que representa uma linha na tabela DP_CARGO. Você pode customizar o
- * comportamento desta classe editando a classe {@link DpCargo}.
+ * Classe que representa uma linha na tabela CP_LOCALIDADE. Você pode customizar o
+ * comportamento desta classe editando a classe {@link CpLocalidade}.
  */
 
 @MappedSuperclass

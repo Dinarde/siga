@@ -84,11 +84,16 @@ public class DpLotacao extends AbstractDpLotacao implements Serializable,
 	}
 
 	public String getLocalidadeString() {
-		for (String municipio : CpLocalidade.getMunicipios())
+		CpLocalidade localidade = getLocalidade();
+		if(localidade != null){
+			return localidade.getDescricao();
+		} else {
+			for (String municipio : CpLocalidade.getMunicipios())
 			if (getNomeLotacao().toLowerCase()
 					.contains(municipio.toLowerCase()))
 				return municipio;
-		return getOrgaoUsuario().getMunicipioOrgaoUsu();
+			return getOrgaoUsuario().getMunicipioOrgaoUsu();	
+		}
 	}
 
 	public String iniciais(String s) {

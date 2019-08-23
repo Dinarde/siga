@@ -90,8 +90,8 @@ public class ExAutenticacaoController extends ExController {
 		result.include("recaptchaSiteKey", recaptchaSiteKey);
 		result.include("n", n);
 		
-		final String HTTP_PROXY_HOST = System.getProperty("http.proxyHost");
-		final String HTTP_PROXY_PORT = System.getProperty("http.proxyPort");
+//		final String HTTP_PROXY_HOST = System.getProperty("http.proxyHost");
+//		final String HTTP_PROXY_PORT = System.getProperty("http.proxyPort");
 
 		if (n == null || n.trim().length() == 0) {
 			setDefaultResults();
@@ -104,9 +104,9 @@ public class ExAutenticacaoController extends ExController {
 		boolean success = false;
 		if (gRecaptchaResponse != null) {
 		    
-			if (!"".equals(HTTP_PROXY_HOST) && !"".equals(HTTP_PROXY_PORT)){
-				Unirest.setProxy(new HttpHost(HTTP_PROXY_HOST, Integer.parseInt(HTTP_PROXY_PORT)));
-			}
+//			if (!"".equals(HTTP_PROXY_HOST) && !"".equals(HTTP_PROXY_PORT)){
+//				Unirest.setProxy(new HttpHost(HTTP_PROXY_HOST, Integer.parseInt(HTTP_PROXY_PORT)));
+//			}
 
 			JsonNode body = null;
 			if (GoogleRecaptcha.podeUtilizar()) {
