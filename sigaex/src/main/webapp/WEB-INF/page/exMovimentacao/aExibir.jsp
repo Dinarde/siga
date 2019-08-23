@@ -108,10 +108,10 @@ function visualizarImpressao() {
 														<c:set var="exibemov" scope="request" value="cancelamento" />
 													</c:if>
 												</c:if>
-												<c:if test='${mov.exTipoMovimentacao.idTpMov == 66}'>
+												<c:if test='${mov.exTipoMovimentacao.idTpMov == 68}'>
 													<c:set var="exibemov" scope="request" value="incorporacao" />
 												</c:if>
-												<c:if test='${mov.exTipoMovimentacao.idTpMov == 67}'>
+												<c:if test='${mov.exTipoMovimentacao.idTpMov == 69}'>
 													<c:set var="exibemov" scope="request" value="desincorporacao" />
 												</c:if>
 											</c:if> 

@@ -12,54 +12,60 @@
 	<script type="text/javascript">$("html").addClass("fisico");$("fisico").addClass("fisico");</script>
 </c:if>
 
-	<div class="gt-bd clearfix">
-		<div class="gt-content clearfix">
-		
-			<h2>Desincorporação de Documento - ${mob.siglaEDescricaoCompleta}</h2>
-
-			<div class="gt-content-box gt-for-table">
-
-				<form action="desincorporar_gravar" enctype="multipart/form-data" method="post">
-					<input type="hidden" name="postback" value="1" />
-					<input type="hidden" name="sigla" value="${sigla}" />
-	
-					<table class="gt-form-table">
-						<tr class="header">
-							<td colspan="2">Dados da desincorporação</td>
-						</tr>					
-						<tr>
-							<td>Responsável:</td>
-							<td><siga:selecao tema="simple" propriedade="subscritor" modulo="siga"/>&nbsp;
-							<input type="checkbox" theme="simple" name="substituicao"
-								onclick="javascript:displayTitular(this);" />&nbsp;Substituto</td>
-						</tr>
-						<c:set var="style" value="" />
-						<c:if test="${!substituicao}">
-							<c:set var="style" value="display:none" />
-						</c:if>
-						<tr id="tr_titular" style="${style}">
-							<td>Titular:</td>
-							<input type="hidden" name="campos" value="titularSel.id" />
-							<td><siga:selecao propriedade="titular" tema="simple" modulo="siga"/></td>
-						</tr>
-						<tr>
-							<td>
-								<label>Motivo:</label>
-							</td>
-							<td>
-								<input type="text" name="descrMov" maxlength="80" size="80" />
-							</td>
-						</tr>
-						<tr class="button">
-							<td colspan="2">
-								<input type="submit" value="Ok" class="gt-btn-small gt-btn-left" /> 
-								<input type="button" value="Cancela" onclick="javascript:history.back();" class="gt-btn-small gt-btn-left" />
-							</td>
-						</tr>
-					</table>
-				</form>
-		
+	<div class="container-fluid">
+	    <div class="card bg-light mb-3">
+			<div class="card-header">
+				<h5>Desincorporação de Documento - ${mob.siglaEDescricaoCompleta}</h5>
 			</div>
-		</div>
+	        <div class="card-body">
+	            <form action="${request.contextPath}/app/expediente/mov/desincorporar_gravar" enctype="multipart/form-data" method="post">
+	                <input type="hidden" name="postback" value="1" />
+	                <input type="hidden" name="sigla" value="${sigla}" />
+	                <div class="row">
+						<div class="col-md-6">
+							<div class="form-group">
+								<label>Responsável</label>
+	                            <siga:selecao tema="simple" propriedade="subscritor" modulo="siga" />&nbsp;
+	                        </div>
+						</div>
+						<div class="col-sm-2 mt-4">
+							<div class="form-check form-check-inline">
+								<input class="form-check-input" type="checkbox" theme="simple" name="substituicao" onclick="javascript:displayTitular(this);" />
+								<label class="form-check-label">Substituto</label>
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-6">
+							<div class="form-group">
+								<c:set var="style" value="" />
+								<c:if test="${!substituicao}">
+									<c:set var="style" value="display:none" />
+								</c:if>
+								<div id="tr_titular" style="${style}">
+									<label>Titular:</label>
+									<input class="form-control" type="hidden" name="campos" value="titularSel.id" />
+									<siga:selecao propriedade="titular" tema="simple" modulo="siga" />
+								</div>
+							</div>
+	                    </div>
+	                    <div class="row">
+							<div class="col-sm">
+								<div class="form-group">
+									<label>Motivo:</label>
+									<input class="form-group" type="text" name="descrMov" maxlength="80" size="80" />
+								</div>
+	                        </div>
+	                    </div>
+	                    <div class="row">
+	                        <div class="col-sm">
+	                            <input type="submit" value="Ok" class="btn btn-primary" />
+	                            <input type="button" value="Cancela" onclick="javascript:history.back();" class="btn btn-cancel ml-2" />
+	                        </div>
+	                    </div>
+	                </div>
+	            </form>
+	        </div>
+	    </div>
 	</div>
 </siga:pagina>

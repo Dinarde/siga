@@ -3943,7 +3943,7 @@ public class ExBL extends CpBL {
 				|| mov.getIdTpMov() ==  ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_INCORPORACAO
 				|| (mov.getIdTpMov() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_JUNTADA || (mov
 						.getIdTpMov() == ExTipoMovimentacao.TIPO_MOVIMENTACAO_CANCELAMENTO_DE_MOVIMENTACAO)
-						&& ExTipoMovimentacao.hasDocumento(mov.getExMovimentacaoRef().getIdTpMov())) ) {
+						&& (mov.getExMovimentacaoRef() != null && ExTipoMovimentacao.hasDocumento(mov.getExMovimentacaoRef().getIdTpMov()))) ) {
 				
 				mov.setSenhaMov(ExBL.gerarSenhaDoc());
 			}

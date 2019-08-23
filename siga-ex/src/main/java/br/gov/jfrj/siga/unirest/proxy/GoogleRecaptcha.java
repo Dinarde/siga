@@ -53,10 +53,10 @@ public class GoogleRecaptcha {
 			Proxy proxy = new Proxy(Proxy.Type.HTTP, socketAddress);
 
 			connection = (HttpURLConnection) url.openConnection(proxy);
-
+			connection.setRequestProperty("Content-Length", "0");
 			connection.addRequestProperty("accept", "application/json");
 			connection.addRequestProperty("Content-Type", "application/json");
-			connection.setRequestMethod("POST");
+			connection.setRequestMethod("GET");
 
 			connection.setDoInput(true);
 			connection.setDoOutput(true);
@@ -75,7 +75,12 @@ public class GoogleRecaptcha {
 			}
 
 		} catch (Exception e) {
-			throw new UnirestException(e);
+			/* Para evitar de ser mostrado para o usuario os dados da requisicao
+				como o secretKey por exemplo
+			*/
+			e.printStackTrace();
+			
+			throw new UnirestException("Erro ao realizar operação");
 		} finally {
 			if (connection != null) {
 				connection.disconnect();
